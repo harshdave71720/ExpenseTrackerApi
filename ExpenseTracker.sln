@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpenseTracker.Core", "ExpenseTracker.Core\ExpenseTracker.Core.csproj", "{A86A67AB-6CBD-4D3A-B7F5-03252893773F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpenseTracker.Persistence.EF", "ExpenseTracker.Persistence.EF\ExpenseTracker.Persistence.EF.csproj", "{CE190060-654B-45ED-81AB-BFDB8CC6F78B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,17 @@ Global
 		{A86A67AB-6CBD-4D3A-B7F5-03252893773F}.Release|x64.Build.0 = Release|Any CPU
 		{A86A67AB-6CBD-4D3A-B7F5-03252893773F}.Release|x86.ActiveCfg = Release|Any CPU
 		{A86A67AB-6CBD-4D3A-B7F5-03252893773F}.Release|x86.Build.0 = Release|Any CPU
+		{CE190060-654B-45ED-81AB-BFDB8CC6F78B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE190060-654B-45ED-81AB-BFDB8CC6F78B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE190060-654B-45ED-81AB-BFDB8CC6F78B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CE190060-654B-45ED-81AB-BFDB8CC6F78B}.Debug|x64.Build.0 = Debug|Any CPU
+		{CE190060-654B-45ED-81AB-BFDB8CC6F78B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CE190060-654B-45ED-81AB-BFDB8CC6F78B}.Debug|x86.Build.0 = Debug|Any CPU
+		{CE190060-654B-45ED-81AB-BFDB8CC6F78B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE190060-654B-45ED-81AB-BFDB8CC6F78B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE190060-654B-45ED-81AB-BFDB8CC6F78B}.Release|x64.ActiveCfg = Release|Any CPU
+		{CE190060-654B-45ED-81AB-BFDB8CC6F78B}.Release|x64.Build.0 = Release|Any CPU
+		{CE190060-654B-45ED-81AB-BFDB8CC6F78B}.Release|x86.ActiveCfg = Release|Any CPU
+		{CE190060-654B-45ED-81AB-BFDB8CC6F78B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
