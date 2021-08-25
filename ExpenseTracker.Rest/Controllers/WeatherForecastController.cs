@@ -36,4 +36,4 @@ namespace ExpenseTracker.Rest.Controllers
             .ToArray();
         }
     }
-}
+}// dotnet dev-certs https,dotnet dev-certs https --trust
