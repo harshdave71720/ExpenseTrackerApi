@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpenseTracker.Core", "Expe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpenseTracker.Persistence.EF", "ExpenseTracker.Persistence.EF\ExpenseTracker.Persistence.EF.csproj", "{CE190060-654B-45ED-81AB-BFDB8CC6F78B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpenseTracker.Rest", "ExpenseTracker.Rest\ExpenseTracker.Rest.csproj", "{F80C8062-DD93-433E-A891-151E12C9507A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,5 +46,17 @@ Global
 		{CE190060-654B-45ED-81AB-BFDB8CC6F78B}.Release|x64.Build.0 = Release|Any CPU
 		{CE190060-654B-45ED-81AB-BFDB8CC6F78B}.Release|x86.ActiveCfg = Release|Any CPU
 		{CE190060-654B-45ED-81AB-BFDB8CC6F78B}.Release|x86.Build.0 = Release|Any CPU
+		{F80C8062-DD93-433E-A891-151E12C9507A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F80C8062-DD93-433E-A891-151E12C9507A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F80C8062-DD93-433E-A891-151E12C9507A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F80C8062-DD93-433E-A891-151E12C9507A}.Debug|x64.Build.0 = Debug|Any CPU
+		{F80C8062-DD93-433E-A891-151E12C9507A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F80C8062-DD93-433E-A891-151E12C9507A}.Debug|x86.Build.0 = Debug|Any CPU
+		{F80C8062-DD93-433E-A891-151E12C9507A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F80C8062-DD93-433E-A891-151E12C9507A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F80C8062-DD93-433E-A891-151E12C9507A}.Release|x64.ActiveCfg = Release|Any CPU
+		{F80C8062-DD93-433E-A891-151E12C9507A}.Release|x64.Build.0 = Release|Any CPU
+		{F80C8062-DD93-433E-A891-151E12C9507A}.Release|x86.ActiveCfg = Release|Any CPU
+		{F80C8062-DD93-433E-A891-151E12C9507A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
