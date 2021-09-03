@@ -11,6 +11,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ExpenseTracker.Core.Repositories;
+using ExpenseTracker.Persistence.DbContexts;
+using Microsoft.EntityFrameworkCore;
+using MySQL.Data.EntityFrameworkCore.Extensions;
 
 namespace ExpenseTracker.Rest
 {
@@ -32,7 +35,12 @@ namespace ExpenseTracker.Rest
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-            services.AddSingleton<ICategoryRepository, CategoryRepository>();
+            //services.AddDbContext<ExpenseDbContext>(options => options.UseMySQL(Configuration["ConnectionStrings:ExpenseTestDatabase"]));
+            //services.AddSingleton<ICategoryRepository, InMemoryCategoryRepository>()
+
+            services.AddSingleton<IExpenseRepository>(new FileExpenseRepository("./Expenses"));
+            //services.AddSingleton<IExpenseRepository>(new FileExpenseRepository(Configuration["ExpenseTestFilePath"]));
+            //services.AddSingleton<IExpenseRepository>(new FileExpenseRepository(Configuration.GetValue<string>("ExpenseTestFilePath")));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -11,6 +11,8 @@ namespace ExpenseTracker.Rest.MapperProfiles
         {
             CreateMap<CategoryDto, Category>();
             CreateMap<Category, CategoryDto>();
+            CreateMap<ExpenseDto, Expense>();
+            CreateMap<Expense, ExpenseDto>();
         }
     }
 }

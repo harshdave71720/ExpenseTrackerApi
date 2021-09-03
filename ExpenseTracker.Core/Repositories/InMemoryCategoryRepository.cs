@@ -5,7 +5,7 @@ using ExpenseTracker.Core.Entities;
 
 namespace ExpenseTracker.Core.Repositories
 {
-    public class CategoryRepository : ICategoryRepository
+    public class InMemoryCategoryRepository : ICategoryRepository
     {
         private static List<Category> _categories = new List<Category>
         {
