@@ -9,8 +9,7 @@ namespace ExpenseTracker.Core.Repositories
     public class FileExpenseRepository : IExpenseRepository, IDisposable
     {
         private string _filePath;
-
-
+        
         public FileExpenseRepository(string filePath)
         {
             _filePath = filePath;

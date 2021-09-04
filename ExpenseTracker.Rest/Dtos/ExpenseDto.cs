@@ -6,6 +6,8 @@ namespace ExpenseTracker.Rest.Dtos
 {
     public class ExpenseDto
     {
+        public int Id { get; set; }
+        
         [Required]
         [Range(0, double.MaxValue)]
         public double Amount { get; set; }
