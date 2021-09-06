@@ -1,0 +1,30 @@
+@model IEnumerable<ExpenseTracker.Web.ViewModels.ExpenseViewModel>
+
+@{
+    ViewData["Title"] = "Expenses";
+}
+@Html.ActionLink("New", "Add", "Expenses", null,new { @class = "btn btn-primary "})
+<table class="table table-striped">
+    <thead>
+        <th>
+            <tr>
+                <td>Amount</td>
+                <td>Description</td>
+                <td>Category</td>
+            </tr>
+        </th>
+    </thead>
+    <tbody>
+        @if(Model?.Count() > 0)
+        {
+            foreach (var expense in Model)
+            {
+                <tr>
+                    <td>@expense.Amount</td>
+                    <td>@expense.Description</td>
+                    <td>@expense.Category</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

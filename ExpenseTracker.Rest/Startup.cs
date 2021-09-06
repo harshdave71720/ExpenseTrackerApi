@@ -13,7 +13,8 @@ using Microsoft.Extensions.Logging;
 using ExpenseTracker.Core.Repositories;
 using ExpenseTracker.Persistence.DbContexts;
 using Microsoft.EntityFrameworkCore;
-using MySQL.Data.EntityFrameworkCore.Extensions;
+using ExpenseTracker.Persistence.Repositories;
+using Pomelo.EntityFrameworkCore.MySql;
 
 namespace ExpenseTracker.Rest
 {
@@ -26,19 +27,32 @@ namespace ExpenseTracker.Rest
 
         public IConfiguration Configuration { get; }
 
+        private readonly string _myAllowSpecificOrigins = "MyAllowSpecificOrigins";
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options => {
+                options.AddPolicy(name: _myAllowSpecificOrigins,
+                                    builder =>
+                                    {
+                                        builder.WithOrigins("http://localhost:4200");
+                                    }
+                                );
+            });
+
             services.AddControllers();
 
             services.AddSwaggerGen();
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-            //services.AddDbContext<ExpenseDbContext>(options => options.UseMySQL(Configuration["ConnectionStrings:ExpenseTestDatabase"]));
+            var serverVersion = new MySqlServerVersion(new Version(8, 0, 25));
+            services.AddDbContext<ExpenseDbContext>(options => { options.UseMySql(Configuration["ConnectionStrings:ExpenseTestDatabase"], serverVersion); } );
             //services.AddSingleton<ICategoryRepository, InMemoryCategoryRepository>()
 
-            services.AddSingleton<IExpenseRepository>(new FileExpenseRepository("./Expenses"));
+            services.AddTransient<IExpenseRepository, ExpenseRepository>();    
+            //services.AddSingleton<IExpenseRepository>(new FileExpenseRepository("./Expenses"));
             //services.AddSingleton<IExpenseRepository>(new FileExpenseRepository(Configuration["ExpenseTestFilePath"]));
             //services.AddSingleton<IExpenseRepository>(new FileExpenseRepository(Configuration.GetValue<string>("ExpenseTestFilePath")));
         }
@@ -49,6 +63,10 @@ namespace ExpenseTracker.Rest
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseExceptionHandler("/error");
             }
 
             app.UseHttpsRedirection();
@@ -61,6 +79,8 @@ namespace ExpenseTracker.Rest
             });
 
             app.UseRouting();
+
+            app.UseCors(_myAllowSpecificOrigins);
 
             app.UseAuthorization();
 

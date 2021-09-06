@@ -1,0 +1,27 @@
+@model ExpenseTracker.Web.ViewModels.ExpenseViewModel;
+
+@{
+    ViewData["Title"] = "New Expense";
+}
+
+@using(Html.BeginForm("Add", "Expenses", FormMethod.Post, new { @class = "col-md-5" }))
+{
+    <div class="form-group">
+        @Html.LabelFor(m => m.Amount)
+        @Html.TextBoxFor(m => m.Amount, new { @class = "form-control"})
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Description)
+        @Html.TextBoxFor(m => m.Description, new { @class = "form-control"})
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Category)
+        @Html.TextBoxFor(m => m.Category, new { @class = "form-control"})
+    </div>
+
+    @Html.HiddenFor(m => m.Id);
+
+    <button type="submit" class="btn btn-success">Add</button>
+}

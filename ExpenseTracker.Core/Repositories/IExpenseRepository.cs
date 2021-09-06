@@ -14,5 +14,9 @@ namespace ExpenseTracker.Core.Repositories
         Task<IEnumerable<Expense>> Expenses(Predicate<Expense> filter);
 
         Task<Expense> Get(int id);
+
+        public Task<Expense> Update(Expense expense);
+
+        Task SaveChangesAsync();
     }
 }

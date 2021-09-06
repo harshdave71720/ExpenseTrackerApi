@@ -11,6 +11,7 @@ using System.Linq;
 namespace ExpenseTracker.Core.Controllers
 {
     [Route("[controller]")]
+    [ApiController]
     public class ExpenseController : ControllerBase
     {
         private readonly IExpenseRepository _expenseRepository;
@@ -21,8 +22,7 @@ namespace ExpenseTracker.Core.Controllers
             _expenseRepository = repository;
             _mapper = mapper;
         }
-
-
+        
         [HttpPost]
         [Route("")]
         public async Task<IActionResult> Add(ExpenseDto expense)
@@ -31,6 +31,7 @@ namespace ExpenseTracker.Core.Controllers
                 return BadRequest(ModelState);
 
             var result = await _expenseRepository.Add(_mapper.Map<ExpenseDto, Expense>(expense));
+            await _expenseRepository.SaveChangesAsync();
             return Ok(_mapper.Map<Expense, ExpenseDto>(result));
         }
 
@@ -41,5 +42,33 @@ namespace ExpenseTracker.Core.Controllers
             var results = await _expenseRepository.Expenses(null) ?? new List<Expense>();
             return Ok(results.Select(_mapper.Map<Expense, ExpenseDto>));
         } 
+
+        [HttpGet]
+        [Route("{category}")]
+        public async Task<IActionResult> Get(string category)
+        {
+            var results = await _expenseRepository.Expenses(e => e.Category.Equals(category, StringComparison.OrdinalIgnoreCase))
+                            ?? new List<Expense>();
+
+            return Ok(results.Select(_mapper.Map<Expense, ExpenseDto>));
+        }
+
+        [HttpDelete]
+        [Route("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var expense = await _expenseRepository.Delete(id);
+            await _expenseRepository.SaveChangesAsync();
+            if(expense == null) return NotFound();
+
+            return Ok(_mapper.Map<ExpenseDto>(expense));
+        }
+
+        [HttpPut]
+        [Route("")]
+        public async Task<IActionResult> Put(ExpenseDto expense)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -12,10 +12,13 @@ namespace ExpenseTracker.Persistence.Entities
         public int Id { get; set; }
 
         [Required]
-        public double Amount { get; private set; } 
+        public double Amount { get; set; } 
 
         [StringLength(100)]
-        public string Description { get; private set; }
+        public string Description { get; set; }
+
+        [MaxLength(50)]
+        public string Category { get; set; }
 
         // public CategoryEntity Category { get; set; }
 

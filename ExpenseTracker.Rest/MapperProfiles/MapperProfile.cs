@@ -5,9 +5,9 @@ using ExpenseTracker.Core.Entities;
 
 namespace ExpenseTracker.Rest.MapperProfiles
 {
-    public class CategoryProfile : Profile
+    public class MapperProfile : Profile
     {
-        public CategoryProfile()
+        public MapperProfile()
         {
             CreateMap<CategoryDto, Category>();
             CreateMap<Category, CategoryDto>();

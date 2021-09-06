@@ -65,6 +65,11 @@ namespace ExpenseTracker.Core.Repositories
             throw new NotImplementedException();
         }
 
+        public async Task<Expense> Update(Expense expense)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<int> GetNewId()
         {
             int id = 1;
@@ -88,6 +93,11 @@ namespace ExpenseTracker.Core.Repositories
         {
             // _file?.Close();
             // _file?.Dispose();
+        }
+
+        public Task SaveChangesAsync()
+        {
+            return null;
         }
     }
 }
