@@ -12,10 +12,17 @@ namespace ExpenseTracker.Rest.Dtos
         [Range(0, double.MaxValue)]
         public double Amount { get; set; }
 
+        public DateTime? Date { get; set; }
+
         [MaxLength(100)]
         public string Description { get; set; }
 
         [MaxLength(50)]
         public string Category { get; set; }
+
+        public ExpenseDto()
+        {
+            Date = DateTime.Now.Date;
+        }
     }
 }

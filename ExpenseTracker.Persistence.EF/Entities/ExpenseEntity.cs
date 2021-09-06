@@ -20,6 +20,8 @@ namespace ExpenseTracker.Persistence.Entities
         [MaxLength(50)]
         public string Category { get; set; }
 
+        public DateTime Date { get; set; }
+
         // public CategoryEntity Category { get; set; }
 
         // [ForeignKey(nameof(Category))]

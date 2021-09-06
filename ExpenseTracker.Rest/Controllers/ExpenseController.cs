@@ -44,6 +44,18 @@ namespace ExpenseTracker.Core.Controllers
         } 
 
         [HttpGet]
+        [Route("{id}")]
+        public async Task<IActionResult> Get(int id)
+        {
+            var expense = await _expenseRepository.Get(id);
+            
+            if(expense == null)
+                return NotFound();
+
+            return Ok(_mapper.Map<ExpenseDto>(expense));
+        }
+
+        [HttpGet]
         [Route("{category}")]
         public async Task<IActionResult> Get(string category)
         {
