@@ -80,7 +80,12 @@ namespace ExpenseTracker.Core.Controllers
         [Route("")]
         public async Task<IActionResult> Put(ExpenseDto expense)
         {
-            throw new NotImplementedException();
+            var result = await _expenseRepository.Update(_mapper.Map<Expense>(expense));
+
+            if(result == null)
+                return NotFound();
+
+            return Ok(_mapper.Map<ExpenseDto>(result));
         }
     }
 }

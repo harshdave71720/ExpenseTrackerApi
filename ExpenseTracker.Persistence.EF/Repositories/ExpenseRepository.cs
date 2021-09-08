@@ -61,7 +61,7 @@ namespace ExpenseTracker.Persistence.Repositories
             var expenseToUpdate = await _context.Expenses.SingleOrDefaultAsync(e => e.Id == expense.Id);
 
             if(expenseToUpdate == null)
-                return expense;
+                return null;
 
             expenseToUpdate.Amount = expense.Amount;
             expenseToUpdate.Category = expense.Category;
