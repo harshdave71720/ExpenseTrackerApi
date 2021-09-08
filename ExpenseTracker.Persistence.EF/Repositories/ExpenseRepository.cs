@@ -26,6 +26,7 @@ namespace ExpenseTracker.Persistence.Repositories
         public async Task<Expense> Add(Expense expense)
         {
             await _context.Expenses.AddAsync(_mapper.Map<Expense, ExpenseEntity>(expense));
+            await _context.SaveChangesAsync();
             return expense;
         }
 

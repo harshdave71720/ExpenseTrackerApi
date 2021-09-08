@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using ExpenseTracker.Persistence.Repositories;
 using Pomelo.EntityFrameworkCore.MySql;
 using AutoMapper;
+using ExpenseTracker.Core.Services;
 
 namespace ExpenseTracker.Rest
 {
@@ -55,7 +56,9 @@ namespace ExpenseTracker.Rest
             services.AddDbContext<ExpenseDbContext>(options => { options.UseMySql(Configuration["ConnectionStrings:ExpenseTestDatabase"], serverVersion); } );
             //services.AddSingleton<ICategoryRepository, InMemoryCategoryRepository>()
 
-            services.AddTransient<IExpenseRepository, ExpenseRepository>();    
+            services.AddTransient<IExpenseRepository, ExpenseRepository>();  
+
+            services.AddTransient<IExpenseService, ExpenseService>();  
             //services.AddSingleton<IExpenseRepository>(new FileExpenseRepository("./Expenses"));
             //services.AddSingleton<IExpenseRepository>(new FileExpenseRepository(Configuration["ExpenseTestFilePath"]));
             //services.AddSingleton<IExpenseRepository>(new FileExpenseRepository(Configuration.GetValue<string>("ExpenseTestFilePath")));

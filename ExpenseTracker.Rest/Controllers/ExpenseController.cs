@@ -7,6 +7,7 @@ using ExpenseTracker.Rest.Dtos;
 using AutoMapper;
 using System.Collections.Generic;
 using System.Linq;
+using ExpenseTracker.Core.Services;
 
 namespace ExpenseTracker.Core.Controllers
 {
@@ -14,15 +15,13 @@ namespace ExpenseTracker.Core.Controllers
     [ApiController]
     public class ExpenseController : ControllerBase
     {
-        private readonly IExpenseRepository _expenseRepository;
-        private readonly ICategoryRepository _categoryRepository;
+        private readonly IExpenseService _expenseService;
         private readonly IMapper _mapper;
 
-        public ExpenseController(IExpenseRepository repository, IMapper mapper, ICategoryRepository categoryRepository)
+        public ExpenseController(IExpenseService expenseService, IMapper mapper)
         {
-            _expenseRepository = repository;
             _mapper = mapper;
-            _categoryRepository = categoryRepository;
+            _expenseService = expenseService;
         }
         
         [HttpPost]
@@ -32,8 +31,7 @@ namespace ExpenseTracker.Core.Controllers
             if(!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await _expenseRepository.Add(_mapper.Map<ExpenseDto, Expense>(expense));
-            await _expenseRepository.SaveChangesAsync();
+            var result = await _expenseService.Add(_mapper.Map<ExpenseDto, Expense>(expense), expense.Category);
             return Ok(_mapper.Map<Expense, ExpenseDto>(result));
         }
 
@@ -41,7 +39,7 @@ namespace ExpenseTracker.Core.Controllers
         [Route("")]
         public async Task<IActionResult> Get()
         {
-            var results = await _expenseRepository.Expenses(null) ?? new List<Expense>();
+            var results = await _expenseService.Get();
             return Ok(results.Select(_mapper.Map<Expense, ExpenseDto>));
         } 
 
@@ -49,7 +47,7 @@ namespace ExpenseTracker.Core.Controllers
         [Route("{id}")]
         public async Task<IActionResult> Get(int id)
         {
-            var expense = await _expenseRepository.Get(id);
+            var expense = await _expenseService.Get(id);
             
             if(expense == null)
                 return NotFound();
@@ -61,12 +59,7 @@ namespace ExpenseTracker.Core.Controllers
         [Route("category/{category}")]
         public async Task<IActionResult> Get(string category)
         {
-            var existingCategory = await _categoryRepository.Get(category);
-            if(existingCategory == null)
-                return NotFound();
-
-            var results = await _expenseRepository.Expenses(e => e.Category.Name.Equals(existingCategory.Name, StringComparison.OrdinalIgnoreCase))
-                            ?? new List<Expense>();
+            var results = await _expenseService.Get(category);
 
             return Ok(results.Select(_mapper.Map<Expense, ExpenseDto>));
         }
@@ -75,8 +68,7 @@ namespace ExpenseTracker.Core.Controllers
         [Route("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var expense = await _expenseRepository.Delete(id);
-            await _expenseRepository.SaveChangesAsync();
+            var expense = await _expenseService.Delete(id);
             if(expense == null) return NotFound();
 
             return Ok(_mapper.Map<ExpenseDto>(expense));
@@ -86,7 +78,7 @@ namespace ExpenseTracker.Core.Controllers
         [Route("")]
         public async Task<IActionResult> Put(ExpenseDto expense)
         {
-            var result = await _expenseRepository.Update(_mapper.Map<Expense>(expense));
+            var result = await _expenseService.Update(_mapper.Map<Expense>(expense),  expense.Category);
 
             if(result == null)
                 return NotFound();

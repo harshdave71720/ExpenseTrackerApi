@@ -6,7 +6,7 @@ namespace ExpenseTracker.Core.Repositories
 {
     public interface ICategoryRepository
     {
-        Task<Category> Add(Category c);
+        Task<Category> Add(Category category);
 
         Task<Category> Delete(string name);
 
@@ -14,6 +14,6 @@ namespace ExpenseTracker.Core.Repositories
 
         Task<Category> Get(string name);
 
-        Task<Category> Update(Category c);
+        Task<Category> Update(Category category);
     }
 }
