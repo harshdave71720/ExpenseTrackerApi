@@ -56,7 +56,7 @@ namespace ExpenseTracker.Core.Controllers
         }
 
         [HttpGet]
-        [Route("{category}")]
+        [Route("category/{category}")]
         public async Task<IActionResult> Get(string category)
         {
             var results = await _expenseRepository.Expenses(e => e.Category.Equals(category, StringComparison.OrdinalIgnoreCase))

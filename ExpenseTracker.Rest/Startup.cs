@@ -15,6 +15,7 @@ using ExpenseTracker.Persistence.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using ExpenseTracker.Persistence.Repositories;
 using Pomelo.EntityFrameworkCore.MySql;
+using AutoMapper;
 
 namespace ExpenseTracker.Rest
 {
@@ -37,6 +38,7 @@ namespace ExpenseTracker.Rest
                                     builder =>
                                     {
                                         builder.WithOrigins("http://localhost:4200");
+										builder.AllowAnyMethod ();
                                     }
                                 );
             });
@@ -44,6 +46,8 @@ namespace ExpenseTracker.Rest
             services.AddControllers();
 
             services.AddSwaggerGen();
+
+            // Mapper.Initialize(cgf => cfg => { AddExpressionMapping(); });
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 

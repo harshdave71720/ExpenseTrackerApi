@@ -11,7 +11,7 @@ namespace ExpenseTracker.Core.Repositories
 
         Task<Expense> Delete(int id);
 
-        Task<IEnumerable<Expense>> Expenses(Predicate<Expense> filter);
+        Task<IEnumerable<Expense>> Expenses(Func<Expense, bool> filter);
 
         Task<Expense> Get(int id);
 

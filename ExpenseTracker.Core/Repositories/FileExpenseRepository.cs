@@ -42,7 +42,7 @@ namespace ExpenseTracker.Core.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<Expense>> Expenses(Predicate<Expense> filter)
+        public async Task<IEnumerable<Expense>> Expenses(Func<Expense, bool> filter)
         {
             List<Expense> expenses = new List<Expense>();
             

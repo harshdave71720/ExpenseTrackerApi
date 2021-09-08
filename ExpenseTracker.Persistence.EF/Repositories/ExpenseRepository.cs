@@ -8,6 +8,7 @@ using ExpenseTracker.Core.Entities;
 using System.Threading.Tasks;
 using AutoMapper;
 using ExpenseTracker.Persistence.Entities;
+using AutoMapper.QueryableExtensions;
 
 namespace ExpenseTracker.Persistence.Repositories
 {
@@ -37,17 +38,17 @@ namespace ExpenseTracker.Persistence.Repositories
             return _mapper.Map<ExpenseEntity, Expense>(expense);
         }
 
-        public async Task<IEnumerable<Expense>> Expenses(Predicate<Expense> filter)
+        public async Task<IEnumerable<Expense>> Expenses(Func<Expense, bool> filter)
         {
             if(filter == null)
                 return await _context.Expenses
                         .Select(e => _mapper.Map<ExpenseEntity, Expense>(e))
                         .ToListAsync();
             
-            return await _context.Expenses
-                        .Select(e => _mapper.Map<ExpenseEntity, Expense>(e))
-                        .Where(e => filter(e))
-                        .ToListAsync();
+            return  _context.Expenses
+                        .ProjectTo<Expense>(_mapper.ConfigurationProvider)
+                        .Where(filter)
+                        .ToList();
         }
 
         public async Task<Expense> Get(int id)

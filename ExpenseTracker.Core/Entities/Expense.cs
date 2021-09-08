@@ -14,12 +14,12 @@ namespace ExpenseTracker.Core.Entities
 
         public DateTime Date { get; private set; }
 
-        public Expense(double amount, string description = null, string category = null, DateTime? date = null)
+        public Expense(double amount, string description = null, string category = null, DateTime date = new DateTime())
         {
             Amount = amount;
             Description = description;
             Category = category;
-            Date = date == null ? DateTime.Now.Date : date.Value.Date;
+            Date = date == new DateTime() ? DateTime.Now.Date : date.Date;
         }
 
         public Expense(int id, double amount, string description = null, string category = null) : this(amount, description, category)
