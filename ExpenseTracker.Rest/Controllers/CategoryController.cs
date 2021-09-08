@@ -10,16 +10,17 @@ using System.Linq;
 namespace ExpenseTracker.Rest.Controller
 {
     [Route("[controller]")]
+    [ApiController]
     public class CategoryController : ControllerBase
     {
-        // private readonly IMapper _mapper;
-        // private readonly ICategoryRepository _categoryRepository;
+        private readonly IMapper _mapper;
+        private readonly ICategoryRepository _categoryRepository;
 
-        // public CategoryController(IMapper mapper, ICategoryRepository categoryRepository)
-        // {
-        //     _mapper = mapper;
-        //     _categoryRepository = categoryRepository;
-        // }
+        public CategoryController(IMapper mapper, ICategoryRepository categoryRepository)
+        {
+            _mapper = mapper;
+            _categoryRepository = categoryRepository;
+        }
 
         // [HttpGet]
         // [Route("")]

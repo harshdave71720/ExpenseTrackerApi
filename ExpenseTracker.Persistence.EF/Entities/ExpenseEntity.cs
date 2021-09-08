@@ -17,15 +17,11 @@ namespace ExpenseTracker.Persistence.Entities
         [StringLength(100)]
         public string Description { get; set; }
 
-        [MaxLength(50)]
-        public string Category { get; set; }
-
         public DateTime Date { get; set; }
 
-        // public CategoryEntity Category { get; set; }
+        public CategoryEntity Category { get; set; }
 
-        // [ForeignKey(nameof(Category))]
-        // [Required]
-        // public int CategoryId { get; set; }
+        [ForeignKey(nameof(Category))]
+        public int? CategoryId { get; set; }
     }
 }

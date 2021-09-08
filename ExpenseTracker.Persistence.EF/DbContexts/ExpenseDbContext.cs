@@ -10,5 +10,7 @@ namespace ExpenseTracker.Persistence.DbContexts
         }
 
         public DbSet<ExpenseEntity> Expenses { get; set; }
+
+        public DbSet<CategoryEntity> Categories { get; set; }
     }
 }

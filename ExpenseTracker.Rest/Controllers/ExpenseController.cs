@@ -15,12 +15,14 @@ namespace ExpenseTracker.Core.Controllers
     public class ExpenseController : ControllerBase
     {
         private readonly IExpenseRepository _expenseRepository;
+        private readonly ICategoryRepository _categoryRepository;
         private readonly IMapper _mapper;
 
-        public ExpenseController(IExpenseRepository repository, IMapper mapper)
+        public ExpenseController(IExpenseRepository repository, IMapper mapper, ICategoryRepository categoryRepository)
         {
             _expenseRepository = repository;
             _mapper = mapper;
+            _categoryRepository = categoryRepository;
         }
         
         [HttpPost]
@@ -59,7 +61,11 @@ namespace ExpenseTracker.Core.Controllers
         [Route("category/{category}")]
         public async Task<IActionResult> Get(string category)
         {
-            var results = await _expenseRepository.Expenses(e => e.Category.Equals(category, StringComparison.OrdinalIgnoreCase))
+            var existingCategory = await _categoryRepository.Get(category);
+            if(existingCategory == null)
+                return NotFound();
+
+            var results = await _expenseRepository.Expenses(e => e.Category.Name.Equals(existingCategory.Name, StringComparison.OrdinalIgnoreCase))
                             ?? new List<Expense>();
 
             return Ok(results.Select(_mapper.Map<Expense, ExpenseDto>));

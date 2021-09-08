@@ -64,7 +64,7 @@ namespace ExpenseTracker.Persistence.Repositories
                 return null;
 
             expenseToUpdate.Amount = expense.Amount;
-            expenseToUpdate.Category = expense.Category;
+            expenseToUpdate.CategoryId = expense.Category.Id;
 
             _context.SaveChangesAsync();
             return expense;

@@ -1,16 +1,19 @@
 using ExpenseTracker.Core.Entities;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ExpenseTracker.Core.Repositories
 {
     public interface ICategoryRepository
     {
-        Category Add(Category c);
+        Task<Category> Add(Category c);
 
-        Category Delete(string name);
+        Task<Category> Delete(string name);
 
-        IEnumerable<Category> Categories();
+        Task<IEnumerable<Category>> Categories();
 
-        Category Get(string name);
+        Task<Category> Get(string name);
+
+        Task<Category> Update(Category c);
     }
 }

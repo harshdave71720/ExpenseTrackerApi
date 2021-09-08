@@ -5,6 +5,7 @@ using System.Collections.Generic;
 
 namespace ExpenseTracker.Persistence.Entities
 {
+    [Table("category")]
     public class CategoryEntity
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -15,6 +16,6 @@ namespace ExpenseTracker.Persistence.Entities
         [Required]
         public string Name { get; private set; }
 
-        //public List<ExpenseEntity> Expenses { get; set; }
+        public List<ExpenseEntity> Expenses { get; set; }
     }
 }
