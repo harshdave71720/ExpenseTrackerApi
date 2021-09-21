@@ -1,0 +1,29 @@
+@model AddExpenseViewModel
+
+@{
+    ViewBag.Title = "New Expense";
+}
+
+@using(Html.BeginForm("Add", "Expenses", FormMethod.Post))
+{
+    <div class="form-group">
+        @Html.LabelFor(e => e.Expense.Amount)
+        @Html.EditorFor(e => e.Expense.Amount, new { htmlAttributes = new {@class = "form-control"}})
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(e => e.Expense.Description)
+        @Html.EditorFor(e => e.Expense.Description, new { htmlAttributes = new {@class = "form-control"}})
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(e => e.Expense.Category)
+        @Html.DropDownListFor(e => e.Expense.Category, new SelectList(Model.Categories, "Name", "Name"), "Select Category", new { @class = "form-control" })
+    </div>
+
+    <div class="form-group">
+        <input type="submit" value="Add" class="btn btn-primary">
+    </div>
+
+    @Html.AntiForgeryToken()
+}

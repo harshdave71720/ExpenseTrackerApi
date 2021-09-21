@@ -24,7 +24,7 @@ namespace ExpenseTracker.Persistence.Repositories
 
         public async Task<Category> Add(Category category)
         {
-            var exists = _context.Categories.Any(c => c.Name.Equals(category.Name, StringComparison.OrdinalIgnoreCase));
+            var exists = _context.Categories.Any(c => c.Name.Equals(category.Name));
             
             if(exists)
                 return null;
@@ -38,7 +38,7 @@ namespace ExpenseTracker.Persistence.Repositories
 
         public async Task<Category> Delete(string name)
         {
-            var category = await _context.Categories.SingleOrDefaultAsync(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            var category = await _context.Categories.SingleOrDefaultAsync(c => c.Name.Equals(name));
 
             if(category == null)
                 return null;
@@ -51,13 +51,14 @@ namespace ExpenseTracker.Persistence.Repositories
 
         public async Task<IEnumerable<Category>> Categories()
         {
-            var categories = await _context.Categories.ToListAsync();
+            var categories = await _context.Categories.AsNoTracking().ToListAsync();
             return categories.Select(_mapper.Map<Category>);
         }
 
         public async Task<Category> Get(string name)
         {
-            return await _mapper.Map<CategoryEntity>(_context.Categories.SingleOrDefaultAsync(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase)));
+            //return _mapper.Map<Category>(await _context.Categories.SingleOrDefaultAsync(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase)));
+            return _mapper.Map<Category>(await _context.Categories.AsNoTracking().SingleOrDefaultAsync(c => c.Name.Equals(name)));
         }
 
         public async Task<Category> Update(Category category)
@@ -65,7 +66,10 @@ namespace ExpenseTracker.Persistence.Repositories
             // var existing = await GetCategory(category.Name);
             // if(existing == null)
             //     return null;
-            return null;
+            
+            // existing.Name =
+
+            return await Task.FromResult<Category>(null); 
         }
 
         public async Task SaveChangesAsync()
@@ -75,7 +79,12 @@ namespace ExpenseTracker.Persistence.Repositories
 
         private async Task<CategoryEntity> GetCategory(string name)
         {
-            return await _context.Categories.SingleOrDefaultAsync(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            return await _context.Categories.SingleOrDefaultAsync(c => c.Name.Equals(name));
         }
+
+        // private async Task<CategoryEntity> GetCategory(int id)
+        // {
+        //     return await 
+        // }
     }
 }

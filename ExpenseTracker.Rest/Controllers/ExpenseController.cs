@@ -31,7 +31,7 @@ namespace ExpenseTracker.Core.Controllers
             if(!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await _expenseService.Add(_mapper.Map<ExpenseDto, Expense>(expense), expense.Category);
+            var result = await _expenseService.Add(_mapper.Map<ExpenseDto, Expense>(expense), expense.CategoryName);
             return Ok(_mapper.Map<Expense, ExpenseDto>(result));
         }
 
@@ -78,7 +78,7 @@ namespace ExpenseTracker.Core.Controllers
         [Route("")]
         public async Task<IActionResult> Put(ExpenseDto expense)
         {
-            var result = await _expenseService.Update(_mapper.Map<Expense>(expense),  expense.Category);
+            var result = await _expenseService.Update(_mapper.Map<Expense>(expense),  expense.CategoryName);
 
             if(result == null)
                 return NotFound();

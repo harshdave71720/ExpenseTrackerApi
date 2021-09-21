@@ -18,7 +18,7 @@ namespace ExpenseTracker.Rest.Dtos
         public string Description { get; set; }
 
         [MaxLength(50)]
-        public string Category { get; set; }
+        public string CategoryName { get; set; }
 
         public ExpenseDto()
         {

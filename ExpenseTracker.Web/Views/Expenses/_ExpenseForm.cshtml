@@ -1,0 +1,20 @@
+@model ExpenseViewModel
+
+@using(Html.BeginForm("Add", "Expenses", FormMethod.Post))
+{
+    <tr id="expenseForm">
+        <td>
+            @Html.EditorFor(e => e.Amount)
+        </td>
+        <td>
+            @Html.EditorFor(e => e.Description)
+        </td>
+        <td>
+            @Html.EditorFor(e => e.Category)
+        </td>
+        <td>
+            <input type="submit" class="btn btn-primary" value="Add">
+        </td>
+    </tr>
+}
+

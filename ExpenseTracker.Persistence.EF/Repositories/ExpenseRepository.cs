@@ -25,9 +25,14 @@ namespace ExpenseTracker.Persistence.Repositories
 
         public async Task<Expense> Add(Expense expense)
         {
-            await _context.Expenses.AddAsync(_mapper.Map<Expense, ExpenseEntity>(expense));
+            var ex = _mapper.Map<Expense, ExpenseEntity>(expense);
+            
+            await _context.Expenses.AddAsync(ex);
             await _context.SaveChangesAsync();
-            return expense;
+            
+            var result = _mapper.Map<Expense>(ex);
+            result.Category = expense.Category;
+            return result;
         }
 
         public async Task<Expense> Delete(int id)
@@ -43,18 +48,20 @@ namespace ExpenseTracker.Persistence.Repositories
         {
             if(filter == null)
                 return await _context.Expenses
-                        .Select(e => _mapper.Map<ExpenseEntity, Expense>(e))
-                        .ToListAsync();
+                    .Include(e => e.Category)
+                    .Select(e => _mapper.Map<ExpenseEntity, Expense>(e))
+                    .ToListAsync();
             
             return  _context.Expenses
-                        .ProjectTo<Expense>(_mapper.ConfigurationProvider)
-                        .Where(filter)
-                        .ToList();
+                    .Include(e => e.Category)
+                    .ProjectTo<Expense>(_mapper.ConfigurationProvider)
+                    .Where(filter)
+                    .ToList();
         }
 
         public async Task<Expense> Get(int id)
         {
-            return _mapper.Map<ExpenseEntity, Expense>(await _context.Expenses.SingleOrDefaultAsync(e => e.Id == id));
+            return _mapper.Map<ExpenseEntity, Expense>(await _context.Expenses.Include(e => e.Category).SingleOrDefaultAsync(e => e.Id == id));
         }
 
         public async Task<Expense> Update(Expense expense)
@@ -67,7 +74,7 @@ namespace ExpenseTracker.Persistence.Repositories
             expenseToUpdate.Amount = expense.Amount;
             expenseToUpdate.CategoryId = expense.Category.Id;
 
-            _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
             return expense;
         }
 

@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using ExpenseTracker.Web.ViewModels;
@@ -5,6 +6,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Net.Http;
 using Newtonsoft.Json;
+using ExpenseTracker.Core.Services;
+using AutoMapper;
+using System.Linq;
+using ExpenseTracker.Core.Entities;
 
 namespace ExpenseTracker.Web.Controllers
 {
@@ -12,35 +17,50 @@ namespace ExpenseTracker.Web.Controllers
     public class ExpensesController : Controller
     {
         private readonly ILogger<ExpensesController> _logger;
-        private static readonly HttpClient _httpClient = new HttpClient();
+        private readonly ICategoryService _categoryService;
+        private readonly IExpenseService _expenseService;
+        private readonly IMapper _mapper;
 
-        public ExpensesController(ILogger<ExpensesController> logger)
+        public ExpensesController(IExpenseService expenseService,
+             ICategoryService categoryService,
+             ILogger<ExpensesController> logger,
+             IMapper mapper )
         {
+            _categoryService = categoryService;
+            _expenseService = expenseService;
             _logger = logger;
+            _mapper = mapper;
         }
-
+        
         [HttpGet]
         [Route("")]
         public async Task<IActionResult> Index()
         {
-            var response = await _httpClient.GetAsync("https://localhost:5001/Expense");
-            response.EnsureSuccessStatusCode();
-            var expenses = JsonConvert.DeserializeObject<IEnumerable<ExpenseViewModel>>(await response.Content.ReadAsStringAsync());
-            return View(expenses);
+            var expenses = await _expenseService.Get();
+            return View(expenses.Select(_mapper.Map<ExpenseViewModel>));
         }
 
         [HttpGet]
         [Route("New")]
         public async Task<IActionResult> Add()
         {
-            return View(new ExpenseViewModel());
+            return View("ExpenseForm", new AddExpenseViewModel { Expense = new ExpenseViewModel(), 
+                Categories = (await _categoryService.Get()).Select(_mapper.Map<CategoryViewModel>) ?? new List<CategoryViewModel>() });
         }
 
         [HttpPost]
         [Route("New")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Add(ExpenseViewModel expense)
         {
-            return RedirectToAction("Index");
+            var e = _mapper.Map<Expense>(expense);
+            var result = await _expenseService.Add(e, expense.Category);
+            
+            if(result == null)
+                throw new Exception();
+
+            return RedirectToAction(nameof(Index));
         }
+
     }
 }

@@ -5,7 +5,7 @@ namespace ExpenseTracker.Persistence.DbContexts
 {
     public class ExpenseDbContext : DbContext
     {
-        public ExpenseDbContext(DbContextOptions options) : base(options)
+        public ExpenseDbContext(DbContextOptions<ExpenseDbContext> options) : base(options)
         {
         }
 

@@ -6,6 +6,8 @@ using ExpenseTracker.Core.Entities;
 using ExpenseTracker.Rest.Dtos;
 using AutoMapper;
 using System.Linq;
+using ExpenseTracker.Core.Services;
+using System.Collections.Generic;
 
 namespace ExpenseTracker.Rest.Controller
 {
@@ -14,29 +16,32 @@ namespace ExpenseTracker.Rest.Controller
     public class CategoryController : ControllerBase
     {
         private readonly IMapper _mapper;
-        private readonly ICategoryRepository _categoryRepository;
+        private readonly ICategoryService _categoryService;
 
-        public CategoryController(IMapper mapper, ICategoryRepository categoryRepository)
+        public CategoryController(IMapper mapper, ICategoryService categoryService)
         {
             _mapper = mapper;
-            _categoryRepository = categoryRepository;
+            _categoryService = categoryService;
         }
 
-        // [HttpGet]
-        // [Route("")]
-        // public async Task<IActionResult> Get()
-        // {
-        //     return Ok(_categoryRepository.Categories().Select(c => _mapper.Map<CategoryDto>(c)));
-        // }
+        [HttpGet]
+        [Route("")]
+        public async Task<IActionResult> Get()
+        {
+            return Ok((await _categoryService.Get()).Select(_mapper.Map<CategoryDto>) ?? new List<CategoryDto>());
+        }
 
-        // [HttpPost]
-        // [Route("")]
-        // public async Task<IActionResult> Post(CategoryDto c)
-        // {
-        //     if(!ModelState.IsValid)
-        //         return BadRequest(ModelState);
+        [HttpGet]
+        [Route("{category}")]
+        public async Task<IActionResult> Get(string category)
+        {
+            var cat = await _categoryService.Get(category);
 
-        //     return Ok(_mapper.Map<CategoryDto>(_categoryRepository.Add(_mapper.Map<Category>(c))));
-        // }
+            if(cat == null)
+                return BadRequest();
+
+            return Ok(_mapper.Map<CategoryDto>(cat));
+        }
+
     }
 }

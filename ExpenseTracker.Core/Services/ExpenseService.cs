@@ -49,7 +49,6 @@ namespace ExpenseTracker.Core.Services
         public async Task<Expense> Add(Expense expense, string categoryName)
         {
             expense.Category = await _categoryRepository.Get(categoryName);
-
             expense = await _expenseRepository.Add(expense);
             return expense;
         }

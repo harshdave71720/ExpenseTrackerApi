@@ -8,8 +8,12 @@ namespace ExpenseTracker.Persistence
     {
         public MapperProfile()
         {
-            CreateMap<Expense, ExpenseEntity>();
-            CreateMap<ExpenseEntity, Expense>();
+            CreateMap<Expense, ExpenseEntity>()
+                .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.Category.Id))
+                .ForMember(dest => dest.Category, opt => opt.Ignore()).MaxDepth(1);
+            CreateMap<ExpenseEntity, Expense>().MaxDepth(1);
+            CreateMap<Category, CategoryEntity>().MaxDepth(1);
+            CreateMap<CategoryEntity, Category>().MaxDepth(1);
         }
     }
 }

@@ -9,6 +9,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using ExpenseTracker.Core.Repositories;
+using ExpenseTracker.Core.Services;
+using ExpenseTracker.Persistence.DbContexts;
+using ExpenseTracker.Persistence.Repositories;
 
 namespace ExpenseTracker.Web
 {
@@ -24,7 +30,21 @@ namespace ExpenseTracker.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // services.AddControllersWithViews(options => 
+            // {
+            //     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+            // });
             services.AddControllersWithViews();
+
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+            var serverVersion = new MySqlServerVersion(new Version(8, 0, 25));
+            services.AddDbContext<ExpenseDbContext>(options => { options.UseMySql(Configuration["ConnectionStrings:ExpenseTestDatabase"], serverVersion); } );
+
+            services.AddTransient<IExpenseRepository, ExpenseRepository>();
+            services.AddTransient<ICategoryRepository, CategoryRepository>();
+            services.AddTransient<IExpenseService, ExpenseService>(); 
+            services.AddTransient<ICategoryService, CategoryService>(); 
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
