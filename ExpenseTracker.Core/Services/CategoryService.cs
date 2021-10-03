@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using ExpenseTracker.Core.Entities;
 using ExpenseTracker.Core.Repositories;
+using ExpenseTracker.Core.Helpers;
 
 namespace ExpenseTracker.Core.Services
 {
@@ -12,6 +13,8 @@ namespace ExpenseTracker.Core.Services
 
         public CategoryService(ICategoryRepository categoryRepository)
         {
+            Guard.AgainstNull(categoryRepository, nameof(categoryRepository));
+
             _categoryRepository = categoryRepository;
         }
 
@@ -22,11 +25,15 @@ namespace ExpenseTracker.Core.Services
 
         public async Task<Category> Get(string name)
         {
+            Guard.AgainstNullOrWhiteSpace(name, nameof(name));
+
             return await _categoryRepository.Get(name);
         }
 
         public async Task<Category> Add(Category category)
         {
+            Guard.AgainstNull(category, nameof(category));
+
             var result = await _categoryRepository.Add(category);
             await _categoryRepository.SaveChangesAsync();
             return result;
@@ -34,6 +41,8 @@ namespace ExpenseTracker.Core.Services
 
         public async Task<Category> Delete(string name)
         {
+            Guard.AgainstNullOrWhiteSpace(name, nameof(name));
+
             var result = await _categoryRepository.Delete(name);
             await _categoryRepository.SaveChangesAsync();
             return result;
@@ -41,6 +50,8 @@ namespace ExpenseTracker.Core.Services
 
         public async Task<Category> Update(Category category)
         {
+            Guard.AgainstNull(category, nameof(category));
+
             var result = await _categoryRepository.Update(category);
             await _categoryRepository.SaveChangesAsync();
             return result;

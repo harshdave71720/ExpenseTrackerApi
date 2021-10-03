@@ -47,7 +47,8 @@ namespace ExpenseTracker.Rest
                                     builder =>
                                     {
                                         builder.WithOrigins("http://localhost:4200");
-										builder.AllowAnyMethod ();
+										builder.AllowAnyMethod();
+										builder.AllowAnyHeader();
                                     }
                                 );
             });
