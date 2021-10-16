@@ -27,5 +27,11 @@ namespace ExpenseTracker.Core.Helpers
             if(number <= 0)
                 throw new ArgumentException("Value must be positive", nameof(paramName));
         }
+
+        public static void AgainstNegative(int number, string paramName)
+        {
+            if(number < 0)
+                throw new ArgumentException("Value must be non negative", nameof(paramName));
+        }
     }
 }

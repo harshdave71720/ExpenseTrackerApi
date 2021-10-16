@@ -27,6 +27,13 @@ namespace ExpenseTracker.Core.Services
             return await _expenseRepository.Expenses(null) ?? new List<Expense>();
         }
 
+        public async Task<IEnumerable<Expense>> GetAll(Func<Expense, bool> filter, int limit, int offset, bool latestFirst = true)
+        {
+            Guard.AgainstZeroOrNegative(limit, nameof(limit));
+            Guard.AgainstNegative(offset, nameof(offset));
+            return await _expenseRepository.Expenses(filter, limit, offset, latestFirst) ?? new List<Expense>();
+        }
+
         public async Task<Expense> Get(int id)
         {
             Guard.AgainstZeroOrNegative(id, nameof(id));
@@ -91,6 +98,11 @@ namespace ExpenseTracker.Core.Services
             await _expenseRepository.SaveChangesAsync();
 
             return expense;
+        }
+
+        public async Task<int> GetExpenseCount()
+        {
+            return await _expenseRepository.GetCount();
         }
     }
 }

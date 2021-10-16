@@ -44,6 +44,14 @@ namespace ExpenseTracker.Core.Controllers
         } 
 
         [HttpGet]
+        [Route("GetPaged")]
+        public async Task<IActionResult> Get(int limit, int offset, bool latestFirst)
+        {
+            var results = await _expenseService.GetAll(null, limit, offset, latestFirst);
+            return Ok(results.Select(_mapper.Map<Expense, ExpenseDto>));
+        }
+
+        [HttpGet]
         [Route("{id}")]
         public async Task<IActionResult> Get(int id)
         {
@@ -84,6 +92,14 @@ namespace ExpenseTracker.Core.Controllers
                 return NotFound();
 
             return Ok(_mapper.Map<ExpenseDto>(result));
+        }
+
+        [HttpGet]
+        [Route("Count")]
+        public async Task<IActionResult> GetCount()
+        {
+            var count = await _expenseService.GetExpenseCount();
+            return Ok(count);
         }
     }
 }

@@ -59,6 +59,29 @@ namespace ExpenseTracker.Persistence.Repositories
                     .ToList();
         }
 
+
+        public async Task<IEnumerable<Expense>> Expenses(Func<Expense, bool> filter, int limit, int offset, bool latestFirst)
+        {
+            // var result = _context.Expenses
+            //                 .Include(e => e.Category);
+            // if(filter != null) result = result.Where(filter).AsQueryable();
+            if(latestFirst)
+                return await _context.Expenses
+                                .Include(e => e.Category)
+                                .OrderByDescending(e => e.Date)
+                                .Skip(offset)
+                                .Take(limit)
+                                .Select(e => _mapper.Map<ExpenseEntity, Expense>(e))
+                                .ToListAsync();
+            else
+                return await _context.Expenses
+                                .Include(e => e.Category)
+                                .Skip(offset)
+                                .Take(limit)
+                                .Select(e => _mapper.Map<ExpenseEntity, Expense>(e))
+                                .ToListAsync();
+        }
+
         public async Task<Expense> Get(int id)
         {
             return _mapper.Map<ExpenseEntity, Expense>(await _context.Expenses.Include(e => e.Category).SingleOrDefaultAsync(e => e.Id == id));
@@ -72,7 +95,11 @@ namespace ExpenseTracker.Persistence.Repositories
                 return null;
 
             expenseToUpdate.Amount = expense.Amount;
-            expenseToUpdate.CategoryId = expense.Category.Id;
+            expenseToUpdate.Description = expense.Description;
+            expenseToUpdate.Date = expense.Date;
+            
+            if(expense.Category != null)
+                expenseToUpdate.CategoryId = expense.Category.Id;
 
             await _context.SaveChangesAsync();
             return expense;
@@ -81,6 +108,12 @@ namespace ExpenseTracker.Persistence.Repositories
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<int> GetCount()
+        {
+            // return Task.FromResult<int>(_context.Expenses.Count());
+            return await _context.Expenses.CountAsync();
         }
     }
 }
