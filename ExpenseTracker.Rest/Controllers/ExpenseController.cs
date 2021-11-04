@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ExpenseTracker.Core.Services;
 
-namespace ExpenseTracker.Core.Controllers
+namespace ExpenseTracker.Rest.Controllers
 {
     [Route("[controller]")]
     [ApiController]
@@ -86,6 +86,9 @@ namespace ExpenseTracker.Core.Controllers
         [Route("")]
         public async Task<IActionResult> Put(ExpenseDto expense)
         {
+            if(!ModelState.IsValid)
+                return BadRequest(ModelState);
+                
             var result = await _expenseService.Update(_mapper.Map<Expense>(expense),  expense.CategoryName);
 
             if(result == null)
