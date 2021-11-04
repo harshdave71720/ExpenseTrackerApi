@@ -63,13 +63,14 @@ namespace ExpenseTracker.Persistence.Repositories
 
         public async Task<Category> Update(Category category)
         {
-            // var existing = await GetCategory(category.Name);
-            // if(existing == null)
-            //     return null;
+            var existing = await _context.Categories.SingleOrDefaultAsync(c => c.Id == category.Id);
+            if(existing == null)
+                return null;
             
-            // existing.Name =
-
-            return await Task.FromResult<Category>(null); 
+            existing.Name = category.Name;
+            
+            await SaveChangesAsync();
+            return _mapper.Map<Category>(await _context.Categories.SingleOrDefaultAsync(c => c.Id == category.Id));
         }
 
         public async Task SaveChangesAsync()
@@ -77,10 +78,10 @@ namespace ExpenseTracker.Persistence.Repositories
             await _context.SaveChangesAsync();
         }
 
-        private async Task<CategoryEntity> GetCategory(string name)
-        {
-            return await _context.Categories.SingleOrDefaultAsync(c => c.Name.Equals(name));
-        }
+        // private async Task<CategoryEntity> GetCategory(string name)
+        // {
+        //     return await _context.Categories.SingleOrDefaultAsync(c => c.Name.Equals(name));
+        // }
 
         // private async Task<CategoryEntity> GetCategory(int id)
         // {

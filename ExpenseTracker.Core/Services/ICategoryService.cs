@@ -14,5 +14,7 @@ namespace ExpenseTracker.Core.Services
         Task<Category> Update(Category category);
 
         Task<Category> Delete(string name);
+
+        Task<Category> Add(Category category);
     }
 }
