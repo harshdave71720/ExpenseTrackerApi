@@ -22,12 +22,12 @@ namespace ExpenseTracker.Core.Entities
             Date = date == new DateTime() ? DateTime.Now.Date : date.Date;
         }
 
-        public Expense(int id, double amount, Category category = null,string description = null) : this(amount, category, description)
+        public Expense(int id, double amount, Category category = null,string description = null, DateTime date = new DateTime()) : this(amount, category, description, date)
         {
             Id = id;
         }
 
-        public Expense(int id, Expense expense) : this(expense.Amount, expense.Category, expense.Description)
+        public Expense(int id, Expense expense) : this(expense.Amount, expense.Category, expense.Description, expense.Date)
         {
             Id = id;
         }

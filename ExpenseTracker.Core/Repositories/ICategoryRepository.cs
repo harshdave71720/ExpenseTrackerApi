@@ -17,5 +17,11 @@ namespace ExpenseTracker.Core.Repositories
         Task<Category> Update(Category category);
 
         Task SaveChangesAsync();
+
+        Task<Category> Get(int id);
+
+        public bool Exists(int id);
+
+        public bool Exists(string name);
     }
 }

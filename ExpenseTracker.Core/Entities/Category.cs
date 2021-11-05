@@ -11,10 +11,12 @@ namespace ExpenseTracker.Core.Entities
 
         public List<Expense> Expenses { get; private set; }
 
-        public Category(string name, List<Expense> expenses)
+        public Category(int id, string name, List<Expense> expenses = null)
         {
+            Id = id;
             Name = name;
             Expenses = expenses;
         }
+
     }
 }

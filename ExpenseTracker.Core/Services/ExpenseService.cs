@@ -37,7 +37,6 @@ namespace ExpenseTracker.Core.Services
         public async Task<Expense> Get(int id)
         {
             Guard.AgainstZeroOrNegative(id, nameof(id));
-
             return await _expenseRepository.Get(id);
         }
 

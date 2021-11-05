@@ -43,5 +43,43 @@ namespace ExpenseTracker.Rest.Controller
             return Ok(_mapper.Map<CategoryDto>(cat));
         }
 
+        [HttpPost]
+        [Route("")]
+        public async Task<IActionResult> Add(CategoryDto categoryDto)
+        {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            
+            if(await _categoryService.Get(categoryDto.Name) != null)
+                return BadRequest();
+            
+            return Ok(_mapper.Map<CategoryDto>(await _categoryService.Add(_mapper.Map<Category>(categoryDto))));
+        }
+
+        [HttpDelete]
+        [Route("{category}")]
+        public async Task<IActionResult> Delete(string category)
+        {
+            if(string.IsNullOrWhiteSpace(category))
+            {
+                return BadRequest();
+            }
+
+            return Ok(_mapper.Map<CategoryDto>(await _categoryService.Delete(category)));
+        }
+
+        [HttpPut]
+        [Route("")]
+        public async Task<IActionResult> Put(CategoryDto categoryDto)
+        {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            return Ok(_mapper.Map<CategoryDto>(await _categoryService.Update(_mapper.Map<Category>(categoryDto))));
+        }
     }
 }

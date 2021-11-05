@@ -14,7 +14,7 @@ namespace ExpenseTracker.Persistence.Entities
 
         [StringLength(50)]
         [Required]
-        public string Name { get; private set; }
+        public string Name { get; set; }
 
         public List<ExpenseEntity> Expenses { get; set; }
     }
