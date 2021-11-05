@@ -56,7 +56,7 @@ namespace ExpenseTracker.Tests.Rest
             new Expense(4, 1.1, null, null, DateTime.Now.Date.AddDays(-1)),
         };
 
-        private static Category Category = new Category("Category123", null);
+        private static Category Category = new Category(1,"Category123", null);
 
         private void AssertExpenses(IEnumerable<Expense> expectedExpenses, IEnumerable<ExpenseDto> expensesToAssert)
         {

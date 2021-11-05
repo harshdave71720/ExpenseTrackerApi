@@ -21,7 +21,7 @@ namespace ExpenseTracker.Tests.Core
             new Expense(4, 1.1, null, null, DateTime.Now.Date.AddDays(-1)),
         };
 
-        private static readonly Category Category = new Category("Category123", null);
+        private static readonly Category Category = new Category(1,"Category123", null);
 
         [Test]
         public async Task Get_ReturnsAllExpenses()
@@ -164,7 +164,8 @@ namespace ExpenseTracker.Tests.Core
             Assert.IsNotNull(expenses);
             Assert.AreEqual(Expenses.Where(e => e.Category == Category).Count(), expenses.Count());
             // expenseRepository.Verify(x => x.Expenses(e => e.Category != null && e.Category.Name.Equals("Category123", StringComparison.OrdinalIgnoreCase)), Times.Once);
-            expenseRepository.VerifyNoOtherCalls();
+            // expenseRepository.VerifyNoOtherCalls();
+            categoryRepository.Verify(x => x.Get(Category.Name), Times.Once);
             categoryRepository.VerifyNoOtherCalls();
         }
     }

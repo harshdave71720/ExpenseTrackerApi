@@ -51,6 +51,10 @@ namespace ExpenseTracker.Core.Services
         public async Task<Category> Update(Category category)
         {
             Guard.AgainstNull(category, nameof(category));
+            if(!_categoryRepository.Exists(category.Id))
+            {
+                return null;
+            }
 
             var result = await _categoryRepository.Update(category);
             await _categoryRepository.SaveChangesAsync();
