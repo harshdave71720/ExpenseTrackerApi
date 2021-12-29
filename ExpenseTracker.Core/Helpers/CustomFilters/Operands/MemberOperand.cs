@@ -16,7 +16,7 @@ namespace ExpenseTracker.Core.Helpers.CustomFilters
 
         public override Expression ToExpression()
         {
-            return Expression.Field(_parameter, _memberName);
+            return Expression.PropertyOrField(_parameter, _memberName);
         }
     }
 }
