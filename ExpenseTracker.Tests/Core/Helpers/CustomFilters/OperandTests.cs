@@ -23,6 +23,8 @@ namespace ExpenseTracker.Tests.Core
             Assert.IsNotNull(result);
             Assert.AreEqual(ExpressionType.MemberAccess, result.NodeType);
         }
+
+        #endregion
     }
 
     class Sample
