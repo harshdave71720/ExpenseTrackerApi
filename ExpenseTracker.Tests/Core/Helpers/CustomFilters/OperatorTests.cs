@@ -106,7 +106,8 @@ namespace ExpenseTracker.Tests.Core
 
             // Assert
             Assert.IsNotNull(result);
-            // Assert.AreEqual("wrong", result.ToString());
+            string expression = result.ToString();
+            Assert.AreEqual("wrong", result.ToString());
         }
         #endregion
     }
