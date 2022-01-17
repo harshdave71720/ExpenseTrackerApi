@@ -66,7 +66,15 @@ namespace ExpenseTracker.Core.Services
         {
             Guard.AgainstNull(expense, nameof(expense));
 
-            expense.Category = await _categoryRepository.Get(categoryName);
+            if (categoryName != null)
+            {
+                var category = await _categoryRepository.Get(categoryName);
+                if (category == null)
+                    return null;
+
+                expense.Category = category;
+            }
+
             expense = await _expenseRepository.Add(expense);
             return expense;
         }

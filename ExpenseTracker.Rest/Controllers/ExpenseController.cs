@@ -32,6 +32,8 @@ namespace ExpenseTracker.Rest.Controllers
                 return BadRequest(ModelState);
 
             var result = await _expenseService.Add(_mapper.Map<ExpenseDto, Expense>(expense), expense.CategoryName);
+            if (result == null)
+                return NotFound();
             return Ok(_mapper.Map<Expense, ExpenseDto>(result));
         }
 
