@@ -112,7 +112,8 @@ namespace ExpenseTracker.Rest.Controllers
         [Route("Upload")]
         public async Task<IActionResult> Upload(IFormFile file)
         {
-            return File(file.OpenReadStream(), "text/csv");
+            this._expenseService.UploadExpenses(file.OpenReadStream());
+            return null;
         }
     }
 }

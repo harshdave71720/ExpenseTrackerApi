@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using ExpenseTracker.Core.Entities;
 using ExpenseTracker.Core.Repositories;
 using ExpenseTracker.Core.Helpers;
+using System.IO;
 
 namespace ExpenseTracker.Core.Services
 {
@@ -111,5 +112,22 @@ namespace ExpenseTracker.Core.Services
         {
             return await _expenseRepository.GetCount();
         }
+
+        public async Task<object> UploadExpenses(Stream file)
+        {
+            //Template template = new Template(new FileStream("./Templates/Expense_Upload_Template.csv", FileMode.Open, FileAccess.Read));
+            //var columnsProvided = await new Template((FileStream)file).GetColumnNames();
+            //var columnsNeeded = await template.GetColumnNames();
+            //template.Dispose();
+
+            //var missingColumns = sut.FindMissingColumns(columnsProvided, columnsNeeded);
+
+            //if (missingColumns?.Count() > 0)
+            //    return missingColumns;
+
+            return null;
+        }
+
+        
     }
 }

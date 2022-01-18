@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using ExpenseTracker.Core.Entities;
+using System.IO;
 
 namespace ExpenseTracker.Core.Services
 {
@@ -24,5 +25,7 @@ namespace ExpenseTracker.Core.Services
         Task<Expense> Update(Expense expense, string categoryName);
 
         Task<IEnumerable<Expense>> GetAll(Func<Expense, bool> filter, int limit, int offset, bool oldestFirst = false);
+
+        Task<object> UploadExpenses(Stream file);
     }
 }
