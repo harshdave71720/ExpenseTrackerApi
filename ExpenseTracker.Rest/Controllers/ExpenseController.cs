@@ -8,6 +8,7 @@ using AutoMapper;
 using System.Collections.Generic;
 using System.Linq;
 using ExpenseTracker.Core.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace ExpenseTracker.Rest.Controllers
 {
@@ -105,6 +106,13 @@ namespace ExpenseTracker.Rest.Controllers
         {
             var count = await _expenseService.GetExpenseCount();
             return Ok(count);
+        }
+
+        [HttpPost]
+        [Route("Upload")]
+        public async Task<IActionResult> Upload(IFormFile file)
+        {
+            return File(file.OpenReadStream(), "text/csv");
         }
     }
 }
