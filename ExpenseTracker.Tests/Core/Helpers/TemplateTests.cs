@@ -4,11 +4,11 @@ using System.Text;
 using NUnit.Framework;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
-using ExpenseTracker.Core.Helpers;
+using ExpenseTracker.Core.Helpers.Templates;
 using System.IO;
 using System.Linq;
 
-namespace ExpenseTracker.Tests.Core.Helpers
+namespace ExpenseTracker.Tests.Core.Helpers.Templates
 {
     [TestFixture]
     internal class TemplateTests

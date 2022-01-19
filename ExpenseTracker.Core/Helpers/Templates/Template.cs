@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace ExpenseTracker.Core.Helpers
+namespace ExpenseTracker.Core.Helpers.Templates
 {
     public class Template<T> : IDisposable
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ExpenseTracker.Core.Helpers
+namespace ExpenseTracker.Core.Helpers.Templates
 {
     public class TemplateValidationError
     {
