@@ -112,8 +112,12 @@ namespace ExpenseTracker.Rest.Controllers
         [Route("Upload")]
         public async Task<IActionResult> Upload(IFormFile file)
         {
-            this._expenseService.UploadExpenses(file.OpenReadStream());
-            return null;
+            var errors = await this._expenseService.UploadExpenses(file.OpenReadStream());
+
+            if(errors?.Count() > 0)
+                return BadRequest(errors);
+
+            return Ok();
         }
     }
 }
