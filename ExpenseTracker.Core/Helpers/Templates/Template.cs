@@ -4,19 +4,23 @@ using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace ExpenseTracker.Core.Helpers.Templates
 {
     public class Template<T> : IDisposable
     {
-        private readonly Stream _template;
+        private readonly Stream _templateStream;
+        private readonly TemplateSource<T> _templateSource;
+        private string[] _columnNames;
 
-        public Template(Stream template)
+        public Template(Stream templateStream)
         {
-            if(template == null)
-                 throw new ArgumentNullException(nameof(template));
-            _template = template;
+            if (templateStream == null)
+                throw new ArgumentNullException(nameof(templateStream));
+            _templateStream = templateStream;
+            _templateSource = new TemplateSource<T>();
         }
 
         public async Task<IEnumerable<TemplateValidationError>> Validate()
@@ -31,13 +35,10 @@ namespace ExpenseTracker.Core.Helpers.Templates
         private async Task<IEnumerable<TemplateValidationError>> ValidateRequiredFields()
         {
             var templateColumns = await this.GetColumnNames();
-            List<MemberInfo> fieldsOrProperties = new List<MemberInfo>();
+            List<MemberInfo> publicDataMembers = _templateSource.GetDataMembers();
             var missingMembers = new List<string>();
 
-            Type type = typeof(T);
-            fieldsOrProperties.AddRange(type.GetProperties());
-            fieldsOrProperties.AddRange(type.GetFields());
-            foreach (var member in fieldsOrProperties)
+            foreach (var member in publicDataMembers)
             {
                 if (member.CustomAttributes
                           .Any(a => a.AttributeType == typeof(RequiredAttribute))
@@ -50,31 +51,62 @@ namespace ExpenseTracker.Core.Helpers.Templates
             return missingMembers.Select(f => new TemplateValidationError { Message = $"Template is missing column for {f}" });
         }
 
-        private async Task<List<string>> GetColumnNames()
+        private async Task<string[]> GetColumnNames()
         {
-            TextReader reader = new StreamReader(_template);
+            if (_columnNames != null)
+                return _columnNames;
+
+            _templateStream.Seek(0, SeekOrigin.Begin);
             try
             {
-                string columnString = (await reader.ReadLineAsync()).Trim();
-                if (string.IsNullOrEmpty(columnString))
-                    return new List<string>();
+                using (TextReader reader = new StreamReader(_templateStream, Encoding.UTF8, false, 1024, leaveOpen: true))
+                {
+                    string columnString = (await reader.ReadLineAsync()).Trim();
+                    if (string.IsNullOrEmpty(columnString))
+                        _columnNames = Array.Empty<string>();
+                    else
+                        _columnNames = columnString.Split(',').Select(s => s.Trim()).ToArray();
 
-                return columnString.Split(',').Select(s => s.Trim()).ToList();
+                    reader.Close();
+                    
+                    return _columnNames;
+                }
             }
             catch (IOException)
             {
                 throw new Exception("Error while reading the file");
             }
-            finally
+        }
+
+        public async Task<IEnumerable<T>> GetRecords()
+        {
+            List<T> records = new List<T>();
+            var columns = await GetColumnNames();
+            try
             {
-                reader?.Close();
+                _templateStream.Seek(0, SeekOrigin.Begin);
+                using (TextReader reader = new StreamReader(_templateStream, Encoding.UTF8, false, 1024, leaveOpen: true))
+                {
+                    string nextRecord = await reader.ReadLineAsync();
+                    while ((nextRecord = await reader.ReadLineAsync()) != null)
+                    {
+                        string[] values = nextRecord.Split(',');
+                        records.Add(_templateSource.CreateSourceInstance(columns, values));
+                    }
+
+                   reader.Close();
+                }
+            } catch (Exception ex)
+            {
+                throw new ArgumentException("Error reading data from file.");
             }
+            return records;
         }
 
         public void Dispose()
         {
-            _template?.Close();
-            _template?.Dispose();
+            _templateStream?.Close();
+            _templateStream?.Dispose();
         }
     }
 }
