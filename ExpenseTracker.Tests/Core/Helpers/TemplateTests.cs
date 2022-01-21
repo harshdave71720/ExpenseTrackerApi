@@ -17,15 +17,17 @@ namespace ExpenseTracker.Tests.Core.Helpers.Templates
         public async Task Validate_Should_ReturnMissingColumns()
         {
             // Arrange
-            var columns = new string[]{ nameof(Sample.SampleProp) };
-            var template = new Template<Sample>(new MemoryStream(Encoding.ASCII.GetBytes(nameof(Sample.SampleProp))));
+            var columns = new string[] { nameof(Sample.SampleProp) };
+            var sut = CreateTemplate<Sample>(new string[][] { columns });
 
             // Act
-            IEnumerable<TemplateValidationError> errors = await template.Validate();
+            IEnumerable<TemplateValidationError> errors = await sut.Validate();
 
             // Assert
             Assert.That(errors.Any(e => e.Message.Contains($"Template is missing column for {nameof(Sample.IntegerProp)}")));
             Assert.That(errors.Any(e => e.Message.Contains($"Template is missing column for {nameof(Sample.DateField)}")));
+
+            sut.Dispose();
         }
 
         [Test]
@@ -33,13 +35,15 @@ namespace ExpenseTracker.Tests.Core.Helpers.Templates
         {
             // Arrange
             var columns = new string[] { nameof(Sample.SampleProp) };
-            var template = new Template<Sample>(new MemoryStream(Encoding.ASCII.GetBytes(nameof(Sample.SampleProp))));
+            var sut = CreateTemplate<Sample>(new string[][] { columns });
 
             // Act
-            var errors = await template.Validate();
+            var errors = await sut.Validate();
 
             // Assert
             Assert.That(!errors.Any(e => e.Message.Contains("PrivateProp")));
+
+            sut.Dispose();
         }
 
         [Test]
@@ -47,18 +51,13 @@ namespace ExpenseTracker.Tests.Core.Helpers.Templates
         {
             // Arrange
             string[][] rows = new string[][]
-            { 
-                new string[] { nameof(Sample.SampleProp), nameof(Sample.IntegerProp), nameof(Sample.DateField) },
-                new string[] { "Sample1", "-1", DateTime.Now.AddDays(-1).ToString() },
-                new string[] { "Sample2", "400", DateTime.Now.AddDays(300).ToString() }
-            };
-            string content = "";
-            foreach (var row in rows)
             {
-                content = content + (string.Join(',', row)) + "\n";
-            }
-            Stream stream = new MemoryStream(Encoding.ASCII.GetBytes(content));
-            var sut = new Template<Sample>(stream);
+                new string[] { nameof(Sample.SampleProp), nameof(Sample.IntegerProp), nameof(Sample.DateField) },
+                new string[] { "SampleValue1", "-1", DateTime.Now.AddDays(-1).ToString() },
+                new string[] { "SampleValue2", "400", DateTime.Now.AddDays(300).ToString() }
+            };
+            
+            var sut = CreateTemplate<Sample>(rows);
 
             // Act
             IEnumerable<Sample> samples = await sut.GetRecords();
@@ -74,6 +73,19 @@ namespace ExpenseTracker.Tests.Core.Helpers.Templates
 
                 Assert.That(sample, Is.Not.Null);
             }
+
+            sut.Dispose();
+        }
+
+
+        private Template<T> CreateTemplate<T>(string[][] rows)
+        {
+            StringBuilder contentBuilder = new StringBuilder(string.Empty);
+            foreach (var row in rows)
+                contentBuilder.AppendLine(string.Join(',', row));
+
+            Stream stream = new MemoryStream(Encoding.ASCII.GetBytes(contentBuilder.ToString()));
+            return new Template<T>(stream);
         }
 
         private class Sample

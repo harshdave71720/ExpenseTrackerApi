@@ -29,7 +29,7 @@ namespace ExpenseTracker.Tests.Core.Helpers.Templates
         }
 
         [Test]
-        public void GetColumnOrdinals_ReturnsCorrectColumnsOrdinalsForMembers()
+        public void GetColumnOrdinals_Should_ReturnCorrectColumnsOrdinalsForMembers()
         {
             // Arrange
             var sut = new TemplateSource<Sample>();
@@ -51,7 +51,7 @@ namespace ExpenseTracker.Tests.Core.Helpers.Templates
         }
 
         [Test]
-        public void CreateSourceInstance_ShouldReturnInstanceWithGivenValues()
+        public void CreateSourceInstance_Should_ReturnInstanceWithGivenValues()
         {
             // Arrange
             var columns = new string[] { nameof(Sample.PublicProp1), nameof(Sample.PublicProp2), nameof(Sample.PublicField) };
@@ -62,10 +62,84 @@ namespace ExpenseTracker.Tests.Core.Helpers.Templates
             Sample sample = sut.CreateSourceInstance(columns, values);
 
             // Arrange
-            Assert.That(sample, Is.Not.Null);
             Assert.That(sample.PublicProp1, Is.EqualTo(values[0]));
             Assert.That(sample.PublicProp2, Is.EqualTo(Convert.ToInt32(values[1])));
             Assert.That(sample.PublicField, Is.EqualTo(Convert.ToDateTime(values[2])));
+        }
+
+        [Test]
+        public void CreateSourceInstance_Should_SetOnlyPublicDataMembers()
+        {
+            // Arrange
+            var columns = new string[] { nameof(Sample.PublicProp1), nameof(Sample.PublicProp2), nameof(Sample.PublicField), "PrivateProp1" };
+            var values = new string[] { "Harsh", "1", DateTime.Now.Date.ToString(), "1.1" };
+            var sut = new TemplateSource<Sample>();
+
+            // Act
+            var sample = sut.CreateSourceInstance(columns, values);
+
+            // Assert
+            Assert.That(sample.PublicProp1, Is.EqualTo(values[0]));
+            Assert.That(sample.PublicProp2, Is.EqualTo(Convert.ToInt32(values[1])));
+            Assert.That(sample.PublicField, Is.EqualTo(Convert.ToDateTime(values[2])));
+        }
+
+        [Test]
+        public void CreateSourceInstance_Should_IgnoreExtraColumnsNotPresentInSource()
+        {
+            // Arrange
+            var columns = new string[] { nameof(Sample.PublicProp1), nameof(Sample.PublicProp2), nameof(Sample.PublicField), "ExtraColumn1", "ExtraColum2" };
+            var values = new string[] { "Harsh", "1", DateTime.Now.Date.ToString(), "ExtraValue1" };
+            var sut = new TemplateSource<Sample>();
+
+            // Act
+            var sample = sut.CreateSourceInstance(columns, values);
+
+            // Assert
+            Assert.That(sample.PublicProp1, Is.EqualTo(values[0]));
+            Assert.That(sample.PublicProp2, Is.EqualTo(Convert.ToInt32(values[1])));
+            Assert.That(sample.PublicField, Is.EqualTo(Convert.ToDateTime(values[2])));
+        }
+
+        [Test]
+        public void CreateSourceInstance_Should_IgnoreExtraValuesProvided()
+        {
+            // Arrange
+            var columns = new string[] { nameof(Sample.PublicProp1), nameof(Sample.PublicProp2), nameof(Sample.PublicField), "ExtraColumn1" };
+            var values = new string[] { "Harsh", "1", DateTime.Now.Date.ToString(), "ExtraValue1", "ExtraValue2", "ExtraValue3" };
+            var sut = new TemplateSource<Sample>();
+
+            // Act
+            var sample = sut.CreateSourceInstance(columns, values);
+
+            // Assert
+            Assert.That(sample.PublicProp1, Is.EqualTo(values[0]));
+            Assert.That(sample.PublicProp2, Is.EqualTo(Convert.ToInt32(values[1])));
+            Assert.That(sample.PublicField, Is.EqualTo(Convert.ToDateTime(values[2])));
+        }
+
+        [Test]
+        public void GetRecords_Should_ThroughExceptionWhenValuesNotProvidedForColumnsPresent()
+        {
+            // Arrange
+            var columns = new string[] { nameof(Sample.PublicProp1), nameof(Sample.PublicProp2), nameof(Sample.PublicField) };
+            var values = new string[] { "Harsh", "1" };
+            var sut = new TemplateSource<Sample>();
+
+            // Act
+            Assert.Throws<ArgumentException>(() => { sut.CreateSourceInstance(columns, values); });
+        }
+
+        [Test]
+        public void GetRecords_Should_ThroughExceptionWhenIllFormattedValuesProvided()
+        {
+            // Arrange
+            var columns = new string[] { nameof(Sample.PublicProp1), nameof(Sample.PublicProp2) };
+            var values = new string[] { "Harsh", "NotAnInt" };
+            var sut = new TemplateSource<Sample>();
+
+            // Act
+            Assert.Throws<FormatException>(() => { sut.CreateSourceInstance(columns, values); });
         }
 
         private class Sample

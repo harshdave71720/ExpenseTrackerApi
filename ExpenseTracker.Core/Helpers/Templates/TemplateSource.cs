@@ -54,24 +54,31 @@ namespace ExpenseTracker.Core.Helpers.Templates
 
         public T CreateSourceInstance(string[] columnNames, string[] values)
         {
-            Dictionary<MemberInfo, int> columnOrdinals = GetColumnOrdinals(columnNames);
-            T instance = (T)Activator.CreateInstance(typeof(T));
-            foreach (var pair in columnOrdinals)
+            try
             {
-                if (pair.Value == -1)
-                    continue;
+                Dictionary<MemberInfo, int> columnOrdinals = GetColumnOrdinals(columnNames);
+                T instance = (T)Activator.CreateInstance(typeof(T));
+                foreach (var pair in columnOrdinals)
+                {
+                    if (pair.Value == -1)
+                        continue;
 
-                if (pair.Key.MemberType == MemberTypes.Property)
-                {
-                    ((PropertyInfo)pair.Key).SetValue(instance, Convert.ChangeType(values[pair.Value], ((PropertyInfo)pair.Key).PropertyType));
+                    if (pair.Key.MemberType == MemberTypes.Property)
+                    {
+                        ((PropertyInfo)pair.Key).SetValue(instance, Convert.ChangeType(values[pair.Value], ((PropertyInfo)pair.Key).PropertyType));
+                    }
+                    if (pair.Key.MemberType == MemberTypes.Field)
+                    {
+                        ((FieldInfo)pair.Key).SetValue(instance, Convert.ChangeType(values[pair.Value], ((FieldInfo)pair.Key).FieldType));
+                    }
                 }
-                if (pair.Key.MemberType == MemberTypes.Field)
-                {
-                    ((FieldInfo)pair.Key).SetValue(instance, Convert.ChangeType(values[pair.Value], ((FieldInfo)pair.Key).FieldType));
-                }
+
+                return instance;
             }
-
-            return instance;
+            catch (IndexOutOfRangeException ex)
+            {
+                throw new ArgumentException("Value missing for one of the columns");
+            }
         }
     }
 }
