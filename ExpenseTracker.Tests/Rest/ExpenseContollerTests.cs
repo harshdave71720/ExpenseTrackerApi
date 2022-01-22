@@ -38,7 +38,7 @@ namespace ExpenseTracker.Tests.Rest
             Mock<IExpenseService> expenseService = new Mock<IExpenseService>();
             expenseService.Setup(x => x.Get()).Returns(Task.FromResult((IEnumerable<Expense>)Expenses));
             
-            var contoller = new ExpenseController(expenseService.Object, _mapper);
+            var contoller = new ExpenseController(expenseService.Object, null,_mapper);
 
             var result = (OkObjectResult)await contoller.Get();
             Assert.IsNotNull(result);
