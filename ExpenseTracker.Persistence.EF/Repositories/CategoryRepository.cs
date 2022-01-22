@@ -83,6 +83,11 @@ namespace ExpenseTracker.Persistence.Repositories
             return _mapper.Map<Category>(await _context.Categories.AsNoTracking().SingleOrDefaultAsync(c => c.Id == id));
         }
 
+        public async Task<IEnumerable<Category>> Get(IEnumerable<string> categories)
+        {
+            return _mapper.Map<IEnumerable<Category>>(await _context.Categories.AsNoTracking().Where(c => categories.Contains(c.Name)).ToListAsync());
+        }
+
         public bool Exists(int id)
         {
             return _context.Categories.Any(c => c.Id == id);
