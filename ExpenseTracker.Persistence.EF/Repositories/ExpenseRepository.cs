@@ -35,6 +35,13 @@ namespace ExpenseTracker.Persistence.Repositories
             return result;
         }
 
+        public async Task Add(IEnumerable<Expense> expenses)
+        {
+            var entities = _mapper.Map<IEnumerable<ExpenseEntity>>(expenses);
+            await _context.Expenses.AddRangeAsync(entities);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<Expense> Delete(int id)
         {
             var expense = await _context.Expenses.SingleOrDefaultAsync(e => e.Id == id);
