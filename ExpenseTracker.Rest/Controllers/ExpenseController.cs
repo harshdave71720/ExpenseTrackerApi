@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ExpenseTracker.Core.Services;
 using Microsoft.AspNetCore.Http;
+using ExpenseTracker.Rest.TemplateDtos;
 
 namespace ExpenseTracker.Rest.Controllers
 {
@@ -18,11 +19,13 @@ namespace ExpenseTracker.Rest.Controllers
     {
         private readonly IExpenseService _expenseService;
         private readonly IMapper _mapper;
+        private readonly ITemplateService _templateService;
 
-        public ExpenseController(IExpenseService expenseService, IMapper mapper)
+        public ExpenseController(IExpenseService expenseService, ITemplateService templateService,IMapper mapper)
         {
             _mapper = mapper;
             _expenseService = expenseService;
+            _templateService = templateService;
         }
         
         [HttpPost]
@@ -112,9 +115,15 @@ namespace ExpenseTracker.Rest.Controllers
         [Route("Upload")]
         public async Task<IActionResult> Upload(IFormFile file)
         {
-            var errors = await this._expenseService.UploadExpenses(file.OpenReadStream());
+            var expenses = await this._templateService.GetRecordsFromTemplate<ExpenseTemplateDto>(file.OpenReadStream());
+            var expensesWithCategoies = expenses.Select( e => new KeyValuePair<Expense, string>(
+                    _mapper.Map<Expense>(e),
+                    e.CategoryName
+                )
+            );
 
-            if(errors?.Count() > 0)
+            var errors = await _expenseService.Add(expensesWithCategoies);
+            if (errors?.Count() > 0)
                 return BadRequest(errors);
 
             return Ok();
