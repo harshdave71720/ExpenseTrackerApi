@@ -26,6 +26,6 @@ namespace ExpenseTracker.Core.Services
 
         Task<IEnumerable<Expense>> GetAll(Func<Expense, bool> filter, int limit, int offset, bool oldestFirst = false);
 
-        Task<IEnumerable<string>> UploadExpenses(Stream file);
+        Task<IEnumerable<string>> Add(IEnumerable<KeyValuePair<Expense, string>> expenseWithCategories);
     }
 }

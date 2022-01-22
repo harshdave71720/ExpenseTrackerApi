@@ -115,16 +115,31 @@ namespace ExpenseTracker.Core.Services
             return await _expenseRepository.GetCount();
         }
 
-        public async Task<IEnumerable<string>> UploadExpenses(Stream file)
+        public async Task<IEnumerable<string>> Add(IEnumerable<KeyValuePair<Expense, string>> expenseWithCategories) 
         {
-            Template<ExpenseTemplateDto> template = new Template<ExpenseTemplateDto>(file);
-            var errors = await template.Validate();
-            if (errors.Count() > 0)
+            List<string> errors = new List<string>();
+            var categoryNames = expenseWithCategories.Select(x => x.Value).Distinct().ToList();
+            var categories = await _categoryRepository.Get(categoryNames);
+
+            foreach (var pair in expenseWithCategories)
             {
-                return errors.Select(e => e.Message);
+                var expense = pair.Key;
+                var categoryName = pair.Value;
+                if (string.IsNullOrWhiteSpace(categoryName))
+                    continue;
+
+                var category = categories.SingleOrDefault(c => c.Name.Equals(categoryName, StringComparison.OrdinalIgnoreCase));
+                if (category == null)
+                    errors.Add($"Cannot find the category {pair.Value}");
+                else
+                    expense.Category = category;
             }
 
-            return new List<string>();
+            if (errors.Count() > 0)
+                return errors;
+
+            await _expenseRepository.Add(expenseWithCategories.Select(x => x.Key));
+            return errors;
         }
     }
 }
