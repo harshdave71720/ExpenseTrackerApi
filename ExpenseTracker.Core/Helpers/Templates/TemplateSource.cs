@@ -77,7 +77,7 @@ namespace ExpenseTracker.Core.Helpers.Templates
             }
             catch (IndexOutOfRangeException ex)
             {
-                throw new ArgumentException("Value missing for one of the columns");
+                throw new ArgumentException($"Value missing for one of the columns. Values : [{string.Join(",", values)}]");
             }
         }
     }

@@ -98,7 +98,7 @@ namespace ExpenseTracker.Core.Helpers.Templates
                 }
             } catch (Exception ex)
             {
-                throw new ArgumentException("Error reading data from file.");
+                throw ex;
             }
             return records;
         }
