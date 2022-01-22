@@ -120,25 +120,28 @@ namespace ExpenseTracker.Core.Services
             List<string> errors = new List<string>();
             var categoryNames = expenseWithCategories.Select(x => x.Value).Distinct().ToList();
             var categories = await _categoryRepository.Get(categoryNames);
+            var expenses = new List<Expense>();
 
             foreach (var pair in expenseWithCategories)
             {
                 var expense = pair.Key;
                 var categoryName = pair.Value;
-                if (string.IsNullOrWhiteSpace(categoryName))
-                    continue;
+                if (!string.IsNullOrWhiteSpace(categoryName))
+                {
+                    var category = categories.SingleOrDefault(c => c.Name.Equals(categoryName, StringComparison.OrdinalIgnoreCase));
+                    if (category == null)
+                        errors.Add($"Cannot find the category {pair.Value}");
+                    else
+                        expense.Category = category;
+                }
 
-                var category = categories.SingleOrDefault(c => c.Name.Equals(categoryName, StringComparison.OrdinalIgnoreCase));
-                if (category == null)
-                    errors.Add($"Cannot find the category {pair.Value}");
-                else
-                    expense.Category = category;
+                expenses.Add(expense);
             }
 
             if (errors.Count() > 0)
                 return errors;
 
-            await _expenseRepository.Add(expenseWithCategories.Select(x => x.Key));
+            await _expenseRepository.Add(expenses);
             return errors;
         }
     }
