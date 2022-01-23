@@ -7,7 +7,6 @@ using ExpenseTracker.Core.Repositories;
 using ExpenseTracker.Core.Helpers;
 using ExpenseTracker.Core.Helpers.Templates;
 using System.IO;
-using ExpenseTracker.Core.Dtos;
 
 namespace ExpenseTracker.Core.Services
 {
