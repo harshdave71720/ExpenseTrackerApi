@@ -9,6 +9,8 @@ namespace ExpenseTracker.Core.Repositories
     {
         Task<Expense> Add(Expense expense);
 
+        Task Add(IEnumerable<Expense> expenses);
+
         Task<Expense> Delete(int id);
 
         Task<IEnumerable<Expense>> Expenses(Func<Expense, bool> filter);

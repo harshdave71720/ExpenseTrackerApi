@@ -20,6 +20,8 @@ namespace ExpenseTracker.Core.Repositories
 
         Task<Category> Get(int id);
 
+        Task<IEnumerable<Category>> Get(IEnumerable<string> categories);
+
         public bool Exists(int id);
 
         public bool Exists(string name);

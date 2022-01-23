@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using ExpenseTracker.Core.Entities;
 using ExpenseTracker.Core.Repositories;
 using ExpenseTracker.Core.Helpers;
+using ExpenseTracker.Core.Helpers.Templates;
+using System.IO;
 
 namespace ExpenseTracker.Core.Services
 {
@@ -66,7 +68,15 @@ namespace ExpenseTracker.Core.Services
         {
             Guard.AgainstNull(expense, nameof(expense));
 
-            expense.Category = await _categoryRepository.Get(categoryName);
+            if (categoryName != null)
+            {
+                var category = await _categoryRepository.Get(categoryName);
+                if (category == null)
+                    return null;
+
+                expense.Category = category;
+            }
+
             expense = await _expenseRepository.Add(expense);
             return expense;
         }
@@ -102,6 +112,36 @@ namespace ExpenseTracker.Core.Services
         public async Task<int> GetExpenseCount()
         {
             return await _expenseRepository.GetCount();
+        }
+
+        public async Task<IEnumerable<string>> Add(IEnumerable<KeyValuePair<Expense, string>> expenseWithCategories) 
+        {
+            List<string> errors = new List<string>();
+            var categoryNames = expenseWithCategories.Select(x => x.Value).Distinct().ToList();
+            var categories = await _categoryRepository.Get(categoryNames);
+            var expenses = new List<Expense>();
+
+            foreach (var pair in expenseWithCategories)
+            {
+                var expense = pair.Key;
+                var categoryName = pair.Value;
+                if (!string.IsNullOrWhiteSpace(categoryName))
+                {
+                    var category = categories.SingleOrDefault(c => c.Name.Equals(categoryName, StringComparison.OrdinalIgnoreCase));
+                    if (category == null)
+                        errors.Add($"Cannot find the category {pair.Value}");
+                    else
+                        expense.Category = category;
+                }
+
+                expenses.Add(expense);
+            }
+
+            if (errors.Count() > 0)
+                return errors;
+
+            await _expenseRepository.Add(expenses);
+            return errors;
         }
     }
 }

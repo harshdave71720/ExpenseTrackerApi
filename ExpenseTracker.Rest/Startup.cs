@@ -102,6 +102,7 @@ namespace ExpenseTracker.Rest
 
             services.AddTransient<IExpenseService, ExpenseService>();  
             services.AddTransient<ICategoryService, CategoryService>();
+            services.AddTransient<ITemplateService, TemplateService>();
             //services.AddSingleton<IExpenseRepository>(new FileExpenseRepository("./Expenses"));
             //services.AddSingleton<IExpenseRepository>(new FileExpenseRepository(Configuration["ExpenseTestFilePath"]));
             //services.AddSingleton<IExpenseRepository>(new FileExpenseRepository(Configuration.GetValue<string>("ExpenseTestFilePath")));
