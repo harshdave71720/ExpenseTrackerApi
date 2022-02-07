@@ -31,21 +31,5 @@ namespace ExpenseTracker.Core.Entities
         {
             Id = id;
         }
-
-        // public string ToCsv()
-        // {
-        //     return $"{Id},{Amount},{Description ?? string.Empty},{Category ?? string.Empty}";
-        // }
-
-        // public static string HeadersToCsv()
-        // {
-        //     return $"{nameof(Id)},{nameof(Amount)},{nameof(Description)},{nameof(Category)}";
-        // }
-
-        // public static Expense FromCsv(string expenseString)
-        // {
-        //     string[] properties = expenseString.Split(',');
-        //     return new Expense(int.Parse(properties[0]), double.Parse(properties[1]), properties[2], properties[3]);
-        // }
     }
 }

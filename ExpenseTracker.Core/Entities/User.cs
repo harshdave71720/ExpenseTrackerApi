@@ -6,9 +6,9 @@ namespace ExpenseTracker.Core.Entities
 {
     public class User
     {
-        public readonly int Id;
+        public int Id { get; private set; }
 
-        public readonly string Email;
+        public string Email { get; private set; }
 
         public string FirstName { get; private set; }
 
