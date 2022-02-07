@@ -12,13 +12,15 @@ namespace ExpenseTracker.Tests.Core
     [TestFixture]
     public class CategoryServiceTests
     {
+        private static User user = new User(1, "Demo User", "Demo", "Demo");
+
         [Test]
         public async Task Update_UpdatesExistingCategory()
         {
             // Arrange
             Mock<ICategoryRepository> categoryRepository = new Mock<ICategoryRepository>();
-            var category = new Category(1, "Category1");
-            categoryRepository.Setup(x => x.Update(category)).ReturnsAsync(new Category(1, "Category1"));
+            var category = new Category(1, "Category1", user);
+            categoryRepository.Setup(x => x.Update(category)).ReturnsAsync(new Category(1, "Category1", user));
             categoryRepository.Setup(x => x.Exists(category.Id)).Returns(true);
             var categoryService = new CategoryService(categoryRepository.Object);
 
@@ -38,7 +40,7 @@ namespace ExpenseTracker.Tests.Core
         {
             // Arrange
             Mock<ICategoryRepository> categoryRepository = new Mock<ICategoryRepository>();
-            var category = new Category(1, "Category1");
+            var category = new Category(1, "Category1", user);
             categoryRepository.Setup(x => x.Exists(category.Id)).Returns(false);
             var categoryService = new CategoryService(categoryRepository.Object);
 

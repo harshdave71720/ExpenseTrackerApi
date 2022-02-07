@@ -32,28 +32,30 @@ namespace ExpenseTracker.Tests.Rest
             ExpenseControllerTests.OneTimeSetup();
         }
 
-        [Test]
-        public async Task Test1()
-        {
-            Mock<IExpenseService> expenseService = new Mock<IExpenseService>();
-            expenseService.Setup(x => x.Get()).Returns(Task.FromResult((IEnumerable<Expense>)Expenses));
+        //[Test]
+        //public async Task Test1()
+        //{
+        //    Mock<IExpenseService> expenseService = new Mock<IExpenseService>();
+        //    expenseService.Setup(x => x.Get()).Returns(Task.FromResult((IEnumerable<Expense>)Expenses));
             
-            var contoller = new ExpenseController(expenseService.Object, null,_mapper);
+        //    var contoller = new ExpenseController(expenseService.Object, null,_mapper);
 
-            var result = (OkObjectResult)await contoller.Get();
-            Assert.IsNotNull(result);
+        //    var result = (OkObjectResult)await contoller.Get();
+        //    Assert.IsNotNull(result);
 
-            IEnumerable<ExpenseDto> expensesToAssert = (IEnumerable<ExpenseDto>)result.Value;
-            Assert.IsNotNull(expensesToAssert);
-            AssertExpenses(expectedExpenses : Expenses, expensesToAssert);
-        }
+        //    IEnumerable<ExpenseDto> expensesToAssert = (IEnumerable<ExpenseDto>)result.Value;
+        //    Assert.IsNotNull(expensesToAssert);
+        //    AssertExpenses(expectedExpenses : Expenses, expensesToAssert);
+        //}
+
+        private static User user = new User(1, "Demo User", "Demo", "Demo");
 
         private static List<Expense> Expenses = new List<Expense>
         {
-            new Expense(1, 1.1, Category, "SomeDescription", DateTime.Now.Date),
-            new Expense(2, 1.1, null, "SomeDescription", DateTime.Now.Date.AddDays(1)),
-            new Expense(3, 1.1, Category, null),
-            new Expense(4, 1.1, null, null, DateTime.Now.Date.AddDays(-1)),
+            new Expense(1, 1, user, Category, "SomeDescription", DateTime.Now.Date),
+            new Expense(2, 1.1, user, null, "SomeDescription", DateTime.Now.Date.AddDays(1)),
+            new Expense(3, 1.1, user, Category, null),
+            new Expense(4, 1.1, user, null, null, DateTime.Now.Date.AddDays(-1)),
         };
 
         private static Category Category = new Category(1,"Category123", null);
