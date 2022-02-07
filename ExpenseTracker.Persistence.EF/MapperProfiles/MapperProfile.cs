@@ -14,6 +14,7 @@ namespace ExpenseTracker.Persistence
             CreateMap<ExpenseEntity, Expense>().MaxDepth(1);
             CreateMap<Category, CategoryEntity>().MaxDepth(1);
             CreateMap<CategoryEntity, Category>().MaxDepth(1);
+            CreateMap<UserEntity, User>();
         }
     }
 }

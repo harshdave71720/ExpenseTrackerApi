@@ -65,6 +65,7 @@ namespace ExpenseTracker.Rest
 
             services.AddTransient<IExpenseRepository, ExpenseRepository>();
             services.AddTransient<ICategoryRepository, CategoryRepository>();
+            services.AddTransient<IUserRepository, UserRepository>();
 
             services.AddTransient<IExpenseService, ExpenseService>();  
             services.AddTransient<ICategoryService, CategoryService>();
