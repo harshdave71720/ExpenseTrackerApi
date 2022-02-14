@@ -32,35 +32,35 @@ namespace ExpenseTracker.Web.Controllers
             _mapper = mapper;
         }
         
-        [HttpGet]
-        [Route("")]
-        public async Task<IActionResult> Index()
-        {
-            var expenses = await _expenseService.Get();
-            return View(expenses.Select(_mapper.Map<ExpenseViewModel>));
-        }
+        //[HttpGet]
+        //[Route("")]
+        //public async Task<IActionResult> Index()
+        //{
+        //    var expenses = await _expenseService.Get();
+        //    return View(expenses.Select(_mapper.Map<ExpenseViewModel>));
+        //}
 
         [HttpGet]
         [Route("New")]
         public async Task<IActionResult> Add()
         {
             return View("ExpenseForm", new AddExpenseViewModel { Expense = new ExpenseViewModel(), 
-                Categories = (await _categoryService.Get()).Select(_mapper.Map<CategoryViewModel>) ?? new List<CategoryViewModel>() });
+                Categories = (await _categoryService.Get(null)).Select(_mapper.Map<CategoryViewModel>) ?? new List<CategoryViewModel>() });
         }
 
-        [HttpPost]
-        [Route("New")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Add(ExpenseViewModel expense)
-        {
-            var e = _mapper.Map<Expense>(expense);
-            var result = await _expenseService.Add(e, expense.Category);
+        //[HttpPost]
+        //[Route("New")]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Add(ExpenseViewModel expense)
+        //{
+        //    var e = _mapper.Map<Expense>(expense);
+        //    var result = await _expenseService.Add(e, expense.Category);
             
-            if(result == null)
-                throw new Exception();
+        //    if(result == null)
+        //        throw new Exception();
 
-            return RedirectToAction(nameof(Index));
-        }
+        //    return RedirectToAction(nameof(Index));
+        //}
 
     }
 }
