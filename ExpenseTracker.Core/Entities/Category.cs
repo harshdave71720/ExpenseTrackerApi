@@ -26,12 +26,13 @@ namespace ExpenseTracker.Core.Entities
             }
         }
 
-        public Category(int id, string name, User user,List<Expense> expenses = null)
+        public Category(int id, string name,User user = null, List<Expense> expenses = null)
         {
             Id = id;
             Name = name;
             Expenses = expenses;
-            User = user;
+            if (user != null)
+                User = user;
         }
     }
 }
