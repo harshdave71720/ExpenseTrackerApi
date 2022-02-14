@@ -70,6 +70,7 @@ namespace ExpenseTracker.Rest
             services.AddTransient<IExpenseService, ExpenseService>();  
             services.AddTransient<ICategoryService, CategoryService>();
             services.AddTransient<ITemplateService, TemplateService>();
+            services.AddTransient<IUserService, UserService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
