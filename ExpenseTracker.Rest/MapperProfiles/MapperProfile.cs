@@ -25,6 +25,8 @@ namespace ExpenseTracker.Rest.MapperProfiles
             CreateMap<Expense, ExpenseTemplateDto>()
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name));
             CreateMap<User, UserDto>();
+            CreateMap<UserDto, User>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
         }
     }
 }

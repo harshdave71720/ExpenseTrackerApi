@@ -26,6 +26,7 @@ namespace ExpenseTracker.Persistence
                 .ForMember(dest => dest.User, opt => opt.Ignore())
                 .MaxDepth(1);
             CreateMap<UserEntity, User>();
+            CreateMap<User, UserEntity>();
         }
     }
 }

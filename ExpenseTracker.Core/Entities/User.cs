@@ -21,5 +21,12 @@ namespace ExpenseTracker.Core.Entities
             FirstName = firstName;
             LastName = lastName;
         }
+
+        public User(string email, string firstName, string lastName)
+        {
+            Email = email;
+            FirstName = firstName;
+            LastName = lastName;
+        }
     }
 }
