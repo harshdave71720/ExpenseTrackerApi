@@ -29,7 +29,7 @@ namespace ExpenseTracker.Core.Entities
             }
         }
 
-        public Expense(double amount, User user = null, Category category = null, string description = null, DateTime date = new DateTime())
+        public Expense(double amount = 0, User user = null, Category category = null, string description = null, DateTime date = new DateTime())
         {
             if (user != null)
                 User = user;
