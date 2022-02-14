@@ -17,25 +17,28 @@ namespace ExpenseTracker.Rest.Controller
     {
         private readonly IMapper _mapper;
         private readonly ICategoryService _categoryService;
+        private readonly IUserRepository _userRepository;
+        private User _user;
 
-        public CategoryController(IMapper mapper, ICategoryService categoryService)
+        public CategoryController(IMapper mapper, ICategoryService categoryService, IUserRepository userRepository)
         {
             _mapper = mapper;
             _categoryService = categoryService;
+            _userRepository = userRepository;
         }
 
         [HttpGet]
         [Route("")]
         public async Task<IActionResult> Get()
         {
-            return Ok((await _categoryService.Get()).Select(_mapper.Map<CategoryDto>) ?? new List<CategoryDto>());
+            return Ok((await _categoryService.Get(await GetUser())).Select(_mapper.Map<CategoryDto>) ?? new List<CategoryDto>());
         }
 
         [HttpGet]
         [Route("{category}")]
         public async Task<IActionResult> Get(string category)
         {
-            var cat = await _categoryService.Get(category);
+            var cat = await _categoryService.Get(await GetUser(), category);
 
             if(cat == null)
                 return BadRequest();
@@ -51,11 +54,14 @@ namespace ExpenseTracker.Rest.Controller
             {
                 return BadRequest(ModelState);
             }
-            
-            if(await _categoryService.Get(categoryDto.Name) != null)
+
+            var user = await GetUser();
+            if(await _categoryService.Get(user, categoryDto.Name) != null)
                 return BadRequest();
-            
-            return Ok(_mapper.Map<CategoryDto>(await _categoryService.Add(_mapper.Map<Category>(categoryDto))));
+
+            Category category = _mapper.Map<Category>(categoryDto);
+            category.User = user;
+            return Ok(_mapper.Map<CategoryDto>(await _categoryService.Add(category)));
         }
 
         [HttpDelete]
@@ -67,7 +73,7 @@ namespace ExpenseTracker.Rest.Controller
                 return BadRequest();
             }
 
-            return Ok(_mapper.Map<CategoryDto>(await _categoryService.Delete(category)));
+            return Ok(_mapper.Map<CategoryDto>(await _categoryService.Delete(await GetUser(), category)));
         }
 
         [HttpPut]
@@ -79,7 +85,17 @@ namespace ExpenseTracker.Rest.Controller
                 return BadRequest(ModelState);
             }
 
-            return Ok(_mapper.Map<CategoryDto>(await _categoryService.Update(_mapper.Map<Category>(categoryDto))));
+            var category = _mapper.Map<Category>(categoryDto);
+            category.User = await GetUser();
+            return Ok(_mapper.Map<CategoryDto>(await _categoryService.Update(category)));
+        }
+
+        private async Task<User> GetUser()
+        {
+            if(_user == null)
+                _user = await _userRepository.GetUser("harshdave71720@gmail.com");
+
+            return _user;
         }
     }
 }

@@ -1,7 +1,6 @@
 using System;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using ExpenseTracker.Core.Repositories;
 using ExpenseTracker.Core.Entities;
 using ExpenseTracker.Rest.Dtos;
 using AutoMapper;
@@ -10,6 +9,9 @@ using System.Linq;
 using ExpenseTracker.Core.Services;
 using Microsoft.AspNetCore.Http;
 using ExpenseTracker.Rest.TemplateDtos;
+using ExpenseTracker.Core.Repositories;
+using System.Security.Claims;
+using ExpenseTracker.Core.Helpers;
 
 namespace ExpenseTracker.Rest.Controllers
 {
@@ -20,9 +22,16 @@ namespace ExpenseTracker.Rest.Controllers
         private readonly IExpenseService _expenseService;
         private readonly IMapper _mapper;
         private readonly ITemplateService _templateService;
+        private readonly IUserRepository _userRepository;
+        //private string UserEmail => this.User?.Claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+        private string UserEmail => "harshdave71720@gmail.com";
 
         public ExpenseController(IExpenseService expenseService, ITemplateService templateService,IMapper mapper)
         {
+            Guard.AgainstNull(expenseService, nameof(expenseService));
+            Guard.AgainstNull(templateService, nameof(expenseService));
+            Guard.AgainstNull(mapper, nameof(expenseService));
+
             _mapper = mapper;
             _expenseService = expenseService;
             _templateService = templateService;
@@ -35,33 +44,31 @@ namespace ExpenseTracker.Rest.Controllers
             if(!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await _expenseService.Add(_mapper.Map<ExpenseDto, Expense>(expense), expense.CategoryName);
-            if (result == null)
-                return NotFound();
-            return Ok(_mapper.Map<Expense, ExpenseDto>(result));
+            var result = await _expenseService.Add(UserEmail, _mapper.Map<Expense>(expense), expense.CategoryName);
+            return Ok(_mapper.Map<ExpenseDto>(result));
         }
 
         [HttpGet]
         [Route("")]
         public async Task<IActionResult> Get()
         {
-            var results = await _expenseService.Get();
-            return Ok(results.Select(_mapper.Map<Expense, ExpenseDto>));
+            var results = await _expenseService.Get(UserEmail);
+            return Ok(results.Select(_mapper.Map<ExpenseDto>));
         } 
 
         [HttpGet]
         [Route("GetPaged")]
         public async Task<IActionResult> Get(int limit, int offset, bool latestFirst)
         {
-            var results = await _expenseService.GetAll(null, limit, offset, latestFirst);
-            return Ok(results.Select(_mapper.Map<Expense, ExpenseDto>));
+            var results = await _expenseService.GetAll(UserEmail, null, limit, offset, latestFirst);
+            return Ok(results.Select(_mapper.Map<ExpenseDto>));
         }
 
         [HttpGet]
         [Route("{id}")]
         public async Task<IActionResult> Get(int id)
         {
-            var expense = await _expenseService.Get(id);
+            var expense = await _expenseService.Get(UserEmail, id);
             
             if(expense == null)
                 return NotFound();
@@ -73,16 +80,19 @@ namespace ExpenseTracker.Rest.Controllers
         [Route("category/{category}")]
         public async Task<IActionResult> Get(string category)
         {
-            var results = await _expenseService.Get(category);
+            var results = await _expenseService.Get(UserEmail, category);
 
-            return Ok(results.Select(_mapper.Map<Expense, ExpenseDto>));
+            if (results == null)
+                return NotFound();
+
+            return Ok(results.Select(_mapper.Map<ExpenseDto>));
         }
 
         [HttpDelete]
         [Route("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var expense = await _expenseService.Delete(id);
+            var expense = await _expenseService.Delete(UserEmail, id);
             if(expense == null) return NotFound();
 
             return Ok(_mapper.Map<ExpenseDto>(expense));
@@ -95,7 +105,7 @@ namespace ExpenseTracker.Rest.Controllers
             if(!ModelState.IsValid)
                 return BadRequest(ModelState);
                 
-            var result = await _expenseService.Update(_mapper.Map<Expense>(expense),  expense.CategoryName);
+            var result = await _expenseService.Update(UserEmail, _mapper.Map<Expense>(expense),  expense.CategoryName);
 
             if(result == null)
                 return NotFound();
@@ -107,7 +117,7 @@ namespace ExpenseTracker.Rest.Controllers
         [Route("Count")]
         public async Task<IActionResult> GetCount()
         {
-            var count = await _expenseService.GetExpenseCount();
+            var count = await _expenseService.GetExpenseCount(UserEmail);
             return Ok(count);
         }
 
@@ -122,7 +132,7 @@ namespace ExpenseTracker.Rest.Controllers
                 )
             );
 
-            var errors = await _expenseService.Add(expensesWithCategoies);
+            var errors = await _expenseService.Add(UserEmail, expensesWithCategoies);
             if (errors?.Count() > 0)
                 return BadRequest(errors);
 
