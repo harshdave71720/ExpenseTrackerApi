@@ -8,22 +8,22 @@ namespace ExpenseTracker.Core.Repositories
     {
         Task<Category> Add(Category category);
 
-        Task<Category> Delete(string name);
+        void Delete(Category category);
 
-        Task<IEnumerable<Category>> Categories();
+        Task<IEnumerable<Category>> Categories(User user);
 
-        Task<Category> Get(string name);
+        Task<Category> Get(User user, string name);
 
         Task<Category> Update(Category category);
 
         Task SaveChangesAsync();
 
-        Task<Category> Get(int id);
+        Task<Category> Get(User user, int id);
 
-        Task<IEnumerable<Category>> Get(IEnumerable<string> categories);
+        Task<IEnumerable<Category>> Get(User user, IEnumerable<string> categories);
 
-        public bool Exists(int id);
+        Task<bool> Exists(User user, int id);
 
-        public bool Exists(string name);
+        Task<bool> Exists(User user, string name);
     }
 }
