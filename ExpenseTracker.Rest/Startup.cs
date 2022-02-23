@@ -22,6 +22,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Identity;
+using ExpenseTracker.Identity;
+using Microsoft.OpenApi.Models;
 
 namespace ExpenseTracker.Rest
 {
@@ -54,7 +56,32 @@ namespace ExpenseTracker.Rest
 
             services.AddControllers();
 
-            services.AddSwaggerGen();
+            services.AddSwaggerGen(options =>
+            {
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme() 
+                { 
+                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                    Name = "JWT Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.Http,
+                    BearerFormat = "JWT",
+                    Scheme = "bearer"
+                });
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement()
+                {
+                    {
+                          new OpenApiSecurityScheme
+                          {
+                              Reference = new OpenApiReference
+                              {
+                                  Type = ReferenceType.SecurityScheme,
+                                  Id = "Bearer"
+                              }
+                          },
+                            new string[] {}
+                    }
+                });
+            });
 
             // Mapper.Initialize(cgf => cfg => { AddExpressionMapping(); });
 
@@ -62,6 +89,7 @@ namespace ExpenseTracker.Rest
 
             var serverVersion = new MySqlServerVersion(new Version(8, 0, 25));
             services.AddDbContext<ExpenseDbContext>(options => { options.UseMySql(Configuration["ConnectionStrings:ExpenseTestDatabase"], serverVersion); } );
+            services.AddIdentityServices(Configuration);
 
             services.AddTransient<IExpenseRepository, ExpenseRepository>();
             services.AddTransient<ICategoryRepository, CategoryRepository>();
@@ -98,7 +126,7 @@ namespace ExpenseTracker.Rest
 
             app.UseCors(_myAllowSpecificOrigins);
 
-            // app.UseAuthentication();
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
