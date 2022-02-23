@@ -2,7 +2,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ExpenseTracker.Core\ExpenseTracker.Core.csproj" />
+    <ProjectReference Include="..\ExpenseTracker.Identity\ExpenseTracker.Identity.csproj" />
     <ProjectReference Include="..\ExpenseTracker.Persistence.EF\ExpenseTracker.Persistence.EF.csproj" />
+    <ProjectReference Include="..\Expentracker.Identity.Infrastructure\Expentracker.Identity.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
