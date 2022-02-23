@@ -3,6 +3,7 @@ using AutoMapper;
 using ExpenseTracker.Rest.Dtos;
 using ExpenseTracker.Core.Entities;
 using ExpenseTracker.Rest.TemplateDtos;
+using ExpenseTracker.Identity.Dtos;
 
 namespace ExpenseTracker.Rest.MapperProfiles
 {
@@ -26,6 +27,8 @@ namespace ExpenseTracker.Rest.MapperProfiles
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name));
             CreateMap<User, UserDto>();
             CreateMap<UserDto, User>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
+            CreateMap<RegisterUserDto, User>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
         }
     }
