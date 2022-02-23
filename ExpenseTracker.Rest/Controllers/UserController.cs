@@ -29,7 +29,7 @@ namespace ExpenseTracker.Rest.Controllers
 
         [Route("")]
         [HttpGet]
-        [Authorize(policy: "LastNamePolicy")]
+        [Authorize]
         public async Task<IActionResult> Get(string email)
         {
             var user = await this._userService.Get(email);

@@ -1,29 +1,17 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using ExpenseTracker.Core.Repositories;
 using ExpenseTracker.Persistence.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using ExpenseTracker.Persistence.Repositories;
-using Pomelo.EntityFrameworkCore.MySql;
-using AutoMapper;
 using ExpenseTracker.Core.Services;
 using ExpenseTracker.Rest.Configuration;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using System.Text;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Identity;
-using ExpenseTracker.Identity;
 using Microsoft.OpenApi.Models;
+using ExpenseTracker.Identity.Infrastructure;
 
 namespace ExpenseTracker.Rest
 {
