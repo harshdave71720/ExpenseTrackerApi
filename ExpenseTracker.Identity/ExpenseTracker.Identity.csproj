@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Migrations\20220219124802_InitialCreate.cs" />
+    <Compile Remove="Migrations\20220219124802_InitialCreate.Designer.cs" />
+    <Compile Remove="Migrations\20220219125347_InitialCreate.cs" />
+    <Compile Remove="Migrations\20220219125347_InitialCreate.Designer.cs" />
+    <Compile Remove="Migrations\20220219125433_InitialCreate2.cs" />
+    <Compile Remove="Migrations\20220219125433_InitialCreate2.Designer.cs" />
+    <Compile Remove="Migrations\20220219130854_ChangePrimaryKeyToEmail.cs" />
+    <Compile Remove="Migrations\20220219130854_ChangePrimaryKeyToEmail.Designer.cs" />
+    <Compile Remove="Migrations\20220219131313_ChangedSchemaToSecurity.cs" />
+    <Compile Remove="Migrations\20220219131313_ChangedSchemaToSecurity.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="10.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="3.1.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.16.0" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
+
+</Project>
