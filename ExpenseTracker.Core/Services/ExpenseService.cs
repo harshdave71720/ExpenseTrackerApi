@@ -159,8 +159,8 @@ namespace ExpenseTracker.Core.Services
             Guard.AgainstNull(user, nameof(user));
 
             List<string> errors = new List<string>();
-            var categoryNames = expenseWithCategories.Select(x => x.Value).Distinct().ToList();
-            var categories = await _categoryRepository.Get(null, categoryNames);
+            var categoryNames = expenseWithCategories.Where(x => x.Value != null).Select(x => x.Value).Distinct().ToList();
+            var categories = await _categoryRepository.Get(user, categoryNames);
             var expenses = new List<Expense>();
 
             foreach (var pair in expenseWithCategories)
