@@ -12,19 +12,21 @@ using ExpenseTracker.Rest.TemplateDtos;
 using ExpenseTracker.Core.Repositories;
 using System.Security.Claims;
 using ExpenseTracker.Core.Helpers;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ExpenseTracker.Rest.Controllers
 {
     [Route("[controller]")]
     [ApiController]
+    [Authorize]
     public class ExpenseController : ControllerBase
     {
         private readonly IExpenseService _expenseService;
         private readonly IMapper _mapper;
         private readonly ITemplateService _templateService;
-        private readonly IUserRepository _userRepository;
-        //private string UserEmail => this.User?.Claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-        private string UserEmail => "harshdave71720@gmail.com";
+        //private readonly IUserRepository _userRepository;
+        private string UserEmail => this.User?.Claims?.First(c => c.Type == ClaimTypes.Email)?.Value;
+        //private string UserEmail => "harshdave71720@gmail.com";
 
         public ExpenseController(IExpenseService expenseService, ITemplateService templateService,IMapper mapper)
         {
@@ -94,7 +96,6 @@ namespace ExpenseTracker.Rest.Controllers
         {
             var expense = await _expenseService.Delete(UserEmail, id);
             if(expense == null) return NotFound();
-
             return Ok(_mapper.Map<ExpenseDto>(expense));
         }
 

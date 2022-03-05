@@ -8,9 +8,12 @@ using AutoMapper;
 using System.Linq;
 using ExpenseTracker.Core.Services;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace ExpenseTracker.Rest.Controller
 {
+    [Authorize]
     [Route("[controller]")]
     [ApiController]
     public class CategoryController : ControllerBase
@@ -93,7 +96,7 @@ namespace ExpenseTracker.Rest.Controller
         private async Task<User> GetUser()
         {
             if(_user == null)
-                _user = await _userRepository.GetUser("harshdave71720@gmail.com");
+                _user = await _userRepository.GetUser(this.User.Claims.First(c => c.Type == ClaimTypes.Email).Value);
 
             return _user;
         }

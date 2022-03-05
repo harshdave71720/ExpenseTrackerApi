@@ -14,6 +14,7 @@ namespace ExpenseTracker.Rest.Controllers
 {
     [Route("[controller]")]
     [ApiController]
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -29,7 +30,6 @@ namespace ExpenseTracker.Rest.Controllers
 
         [Route("")]
         [HttpGet]
-        [Authorize]
         public async Task<IActionResult> Get(string email)
         {
             var user = await this._userService.Get(email);
@@ -42,6 +42,7 @@ namespace ExpenseTracker.Rest.Controllers
 
         [Route("register")]
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> Register(RegisterUserDto user)
         { 
             if(!ModelState.IsValid)
@@ -67,6 +68,7 @@ namespace ExpenseTracker.Rest.Controllers
 
         [Route("token")]
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> GetToken([FromBody]LoginUserDto user)
         {
             if (!ModelState.IsValid)
