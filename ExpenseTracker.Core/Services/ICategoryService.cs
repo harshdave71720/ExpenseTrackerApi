@@ -7,13 +7,13 @@ namespace ExpenseTracker.Core.Services
 {
     public interface ICategoryService
     {
-        Task<IEnumerable<Category>> Get();
+        Task<IEnumerable<Category>> Get(User user);
 
-        Task<Category> Get(string name);
+        Task<Category> Get(User user, string categoryName);
 
         Task<Category> Update(Category category);
 
-        Task<Category> Delete(string name);
+        Task<Category> Delete(User user, string categoryName);
 
         Task<Category> Add(Category category);
     }

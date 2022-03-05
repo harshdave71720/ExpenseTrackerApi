@@ -18,40 +18,51 @@ namespace ExpenseTracker.Core.Services
             _categoryRepository = categoryRepository;
         }
 
-        public async Task<IEnumerable<Category>> Get()
+        public async Task<IEnumerable<Category>> Get(User user)
         {
-            return await _categoryRepository.Categories();
+            Guard.AgainstNull(user, nameof(user));
+            return await _categoryRepository.Categories(user) ?? new List<Category>();
         }
 
-        public async Task<Category> Get(string name)
+        public async Task<Category> Get(User user, string categoryName)
         {
-            Guard.AgainstNullOrWhiteSpace(name, nameof(name));
+            Guard.AgainstNull(user, nameof(user));
+            Guard.AgainstNullOrWhiteSpace(categoryName, nameof(categoryName));
 
-            return await _categoryRepository.Get(name);
+            return await _categoryRepository.Get(user, categoryName);
         }
 
         public async Task<Category> Add(Category category)
         {
             Guard.AgainstNull(category, nameof(category));
+            Guard.AgainstNull(category.User, nameof(category.User));
+
+            if (await this._categoryRepository.Exists(category.User, category.Name))
+                return null;
 
             var result = await _categoryRepository.Add(category);
-            await _categoryRepository.SaveChangesAsync();
             return result;
         }
 
-        public async Task<Category> Delete(string name)
+        public async Task<Category> Delete(User user, string categoryName)
         {
-            Guard.AgainstNullOrWhiteSpace(name, nameof(name));
+            Guard.AgainstNull(user, nameof(user));
+            Guard.AgainstNullOrWhiteSpace(categoryName, nameof(categoryName));
 
-            var result = await _categoryRepository.Delete(name);
+            var category = await _categoryRepository.Get(user, categoryName);
+            if (category == null)
+                return null;
+            
+            _categoryRepository.Delete(category);
             await _categoryRepository.SaveChangesAsync();
-            return result;
+            return category;
         }
 
         public async Task<Category> Update(Category category)
         {
             Guard.AgainstNull(category, nameof(category));
-            if(!_categoryRepository.Exists(category.Id))
+            Guard.AgainstNull(category.User, nameof(category.User));
+            if (!await _categoryRepository.Exists(category.User, category.Id))
             {
                 return null;
             }

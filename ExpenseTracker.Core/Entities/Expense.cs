@@ -14,38 +14,39 @@ namespace ExpenseTracker.Core.Entities
 
         public DateTime Date { get; private set; }
 
-        public Expense(double amount, Category category = null, string description = null, DateTime date = new DateTime())
+        private User _user;
+
+        public User User
         {
+            get { return _user; }
+            set
+            {
+                if (value == null)
+                    throw new ArgumentNullException(nameof(User));
+                if (_user != null && !_user.Email.Equals(value.Email, StringComparison.OrdinalIgnoreCase))
+                    throw new NotSupportedException("Changing user is not allowed");
+                _user = value;
+            }
+        }
+
+        public Expense(double amount = 0, User user = null, Category category = null, string description = null, DateTime date = new DateTime())
+        {
+            if (user != null)
+                User = user;
             Amount = amount;
             Description = description;
             Category = category;
             Date = date == new DateTime() ? DateTime.Now.Date : date.Date;
         }
 
-        public Expense(int id, double amount, Category category = null,string description = null, DateTime date = new DateTime()) : this(amount, category, description, date)
+        public Expense(int id, double amount, User user = null, Category category = null,string description = null, DateTime date = new DateTime()) : this(amount, user,category, description, date)
         {
             Id = id;
         }
 
-        public Expense(int id, Expense expense) : this(expense.Amount, expense.Category, expense.Description, expense.Date)
+        public Expense(int id, Expense expense, User user = null) : this(expense.Amount, user, expense.Category, expense.Description, expense.Date)
         {
             Id = id;
         }
-
-        // public string ToCsv()
-        // {
-        //     return $"{Id},{Amount},{Description ?? string.Empty},{Category ?? string.Empty}";
-        // }
-
-        // public static string HeadersToCsv()
-        // {
-        //     return $"{nameof(Id)},{nameof(Amount)},{nameof(Description)},{nameof(Category)}";
-        // }
-
-        // public static Expense FromCsv(string expenseString)
-        // {
-        //     string[] properties = expenseString.Split(',');
-        //     return new Expense(int.Parse(properties[0]), double.Parse(properties[1]), properties[2], properties[3]);
-        // }
     }
 }

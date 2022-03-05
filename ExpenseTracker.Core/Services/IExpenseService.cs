@@ -8,24 +8,24 @@ namespace ExpenseTracker.Core.Services
 {
     public interface IExpenseService
     {
-        Task<Expense> Add(Expense expense, string categoryName);
+        Task<Expense> Add(string userEmail, Expense expense, string categoryName);
 
-        Task<IEnumerable<Expense>> Get();
+        Task<IEnumerable<Expense>> Get(string userEmail);
 
-        Task<Expense> Get(int id);
+        Task<Expense> Get(string userEmail, int expenseId);
 
-        Task<int> GetExpenseCount();
+        Task<int> GetExpenseCount(string userEmail);
 
-        Task<IEnumerable<Expense>> Get(string category);
+        Task<IEnumerable<Expense>> Get(string userEmail, string category);
 
-        Task<IEnumerable<Expense>> Get(Func<Expense, bool> filter);
+        Task<IEnumerable<Expense>> Get(string userEmail, Func<Expense, bool> filter);
 
-        Task<Expense> Delete(int id);
+        Task<Expense> Delete(string userEmail, int expenseId);
 
-        Task<Expense> Update(Expense expense, string categoryName);
+        Task<Expense> Update(string userEmail, Expense expense, string categoryName = null);
 
-        Task<IEnumerable<Expense>> GetAll(Func<Expense, bool> filter, int limit, int offset, bool oldestFirst = false);
+        Task<IEnumerable<Expense>> GetAll(string userEmail, Func<Expense, bool> filter, int limit, int offset, bool oldestFirst = false);
 
-        Task<IEnumerable<string>> Add(IEnumerable<KeyValuePair<Expense, string>> expenseWithCategories);
+        Task<IEnumerable<string>> Add(string userEmail, IEnumerable<KeyValuePair<Expense, string>> expenseWithCategories);
     }
 }

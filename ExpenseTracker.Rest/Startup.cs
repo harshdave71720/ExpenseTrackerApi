@@ -1,28 +1,17 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using ExpenseTracker.Core.Repositories;
 using ExpenseTracker.Persistence.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using ExpenseTracker.Persistence.Repositories;
-using Pomelo.EntityFrameworkCore.MySql;
-using AutoMapper;
 using ExpenseTracker.Core.Services;
 using ExpenseTracker.Rest.Configuration;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using System.Text;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.AspNetCore.Identity;
-using ExpenseTracker.Rest.Identity;
+using Microsoft.OpenApi.Models;
+using ExpenseTracker.Identity.Infrastructure;
 
 namespace ExpenseTracker.Rest
 {
@@ -55,7 +44,32 @@ namespace ExpenseTracker.Rest
 
             services.AddControllers();
 
-            services.AddSwaggerGen();
+            services.AddSwaggerGen(options =>
+            {
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme() 
+                { 
+                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                    Name = "JWT Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.Http,
+                    BearerFormat = "JWT",
+                    Scheme = "bearer"
+                });
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement()
+                {
+                    {
+                          new OpenApiSecurityScheme
+                          {
+                              Reference = new OpenApiReference
+                              {
+                                  Type = ReferenceType.SecurityScheme,
+                                  Id = "Bearer"
+                              }
+                          },
+                            new string[] {}
+                    }
+                });
+            });
 
             // Mapper.Initialize(cgf => cfg => { AddExpressionMapping(); });
 
@@ -63,49 +77,16 @@ namespace ExpenseTracker.Rest
 
             var serverVersion = new MySqlServerVersion(new Version(8, 0, 25));
             services.AddDbContext<ExpenseDbContext>(options => { options.UseMySql(Configuration["ConnectionStrings:ExpenseTestDatabase"], serverVersion); } );
-
-            //services.AddDbContext<IdentityContext>(options => { options.UseMySql(Configuration["ConnectionStrings:ExpenseTestDatabase"], serverVersion); } );
-            //services.AddSingleton<ICategoryRepository, InMemoryCategoryRepository>()
-
-            // services.AddAuthentication(options => 
-            // {
-            //     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            //     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            //     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            // })
-            // .AddJwtBearer
-            // (
-            //     options => 
-            //     {
-            //         var key = Encoding.ASCII.GetBytes(Configuration["JwtConfiguration:Secret"]);
-            //         options.SaveToken = true;
-            //         options.TokenValidationParameters = new TokenValidationParameters
-            //         {
-            //             ValidateIssuerSigningKey = true,
-            //             IssuerSigningKey = new SymmetricSecurityKey(key),
-            //             ValidateIssuer = false,
-            //             ValidateAudience = false,
-            //             ValidateLifetime = true,
-            //             RequireExpirationTime = false
-            //         };
-            //     }
-            // );
-
-            // services.AddDefaultIdentity<IdentityUser>
-            // (
-            //     options => options.SignIn.RequireConfirmedAccount = true
-            // )
-            // .AddEntityFrameworkStores<ExpenseDbContext>();
+            services.AddIdentityServices(Configuration);
 
             services.AddTransient<IExpenseRepository, ExpenseRepository>();
             services.AddTransient<ICategoryRepository, CategoryRepository>();
+            services.AddTransient<IUserRepository, UserRepository>();
 
             services.AddTransient<IExpenseService, ExpenseService>();  
             services.AddTransient<ICategoryService, CategoryService>();
             services.AddTransient<ITemplateService, TemplateService>();
-            //services.AddSingleton<IExpenseRepository>(new FileExpenseRepository("./Expenses"));
-            //services.AddSingleton<IExpenseRepository>(new FileExpenseRepository(Configuration["ExpenseTestFilePath"]));
-            //services.AddSingleton<IExpenseRepository>(new FileExpenseRepository(Configuration.GetValue<string>("ExpenseTestFilePath")));
+            services.AddTransient<IUserService, UserService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -133,7 +114,7 @@ namespace ExpenseTracker.Rest
 
             app.UseCors(_myAllowSpecificOrigins);
 
-            // app.UseAuthentication();
+            app.UseAuthentication();
 
             app.UseAuthorization();
 

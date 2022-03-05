@@ -25,14 +25,12 @@ namespace ExpenseTracker.Persistence.Repositories
 
         public async Task<Expense> Add(Expense expense)
         {
-            var ex = _mapper.Map<Expense, ExpenseEntity>(expense);
+            var expenseToAdd = _mapper.Map<Expense, ExpenseEntity>(expense);
             
-            await _context.Expenses.AddAsync(ex);
-            await _context.SaveChangesAsync();
-            
-            var result = _mapper.Map<Expense>(ex);
-            result.Category = expense.Category;
-            return result;
+            await _context.Expenses.AddAsync(expenseToAdd);
+            await this.SaveChangesAsync();
+
+            return _mapper.Map<Expense>(await _context.Expenses.Include(e => e.Category).FirstAsync(e => e.Id == expenseToAdd.Id));
         }
 
         public async Task Add(IEnumerable<Expense> expenses)
@@ -42,24 +40,26 @@ namespace ExpenseTracker.Persistence.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<Expense> Delete(int id)
+        public void Delete(Expense expense)
         {
-            var expense = await _context.Expenses.SingleOrDefaultAsync(e => e.Id == id);
-            if(expense != null)
-                _context.Expenses.Remove(expense);
-            
-            return _mapper.Map<ExpenseEntity, Expense>(expense);
+            var expenseToDelete = _mapper.Map<ExpenseEntity>(expense);
+            _context.Attach(expenseToDelete);
+            _context.Entry(expenseToDelete).State = EntityState.Deleted;
         }
 
-        public async Task<IEnumerable<Expense>> Expenses(Func<Expense, bool> filter)
+        public async Task<IEnumerable<Expense>> Expenses(User user)
         {
-            if(filter == null)
                 return await _context.Expenses
+                    .Where(e => e.UserId == user.Id)
                     .Include(e => e.Category)
                     .Select(e => _mapper.Map<ExpenseEntity, Expense>(e))
                     .ToListAsync();
-            
+        }
+
+        public async Task<IEnumerable<Expense>> Expenses(User user, Func<Expense, bool> filter)
+        {
             return  _context.Expenses
+                    .Where(e => e.UserId == user.Id)
                     .Include(e => e.Category)
                     .ProjectTo<Expense>(_mapper.ConfigurationProvider)
                     .Where(filter)
@@ -67,13 +67,14 @@ namespace ExpenseTracker.Persistence.Repositories
         }
 
 
-        public async Task<IEnumerable<Expense>> Expenses(Func<Expense, bool> filter, int limit, int offset, bool latestFirst)
+        public async Task<IEnumerable<Expense>> Expenses(User user, Func<Expense, bool> filter, int limit, int offset, bool latestFirst)
         {
             // var result = _context.Expenses
             //                 .Include(e => e.Category);
             // if(filter != null) result = result.Where(filter).AsQueryable();
             if(latestFirst)
                 return await _context.Expenses
+                                .Where(e => e.UserId == user.Id)
                                 .Include(e => e.Category)
                                 .OrderByDescending(e => e.Date)
                                 .Skip(offset)
@@ -82,6 +83,7 @@ namespace ExpenseTracker.Persistence.Repositories
                                 .ToListAsync();
             else
                 return await _context.Expenses
+                                .Where(e => e.UserId == user.Id)
                                 .Include(e => e.Category)
                                 .Skip(offset)
                                 .Take(limit)
@@ -89,26 +91,17 @@ namespace ExpenseTracker.Persistence.Repositories
                                 .ToListAsync();
         }
 
-        public async Task<Expense> Get(int id)
+        public async Task<Expense> Get(User user, int expenseId)
         {
-            return _mapper.Map<ExpenseEntity, Expense>(await _context.Expenses.Include(e => e.Category).SingleOrDefaultAsync(e => e.Id == id));
+            return _mapper.Map<ExpenseEntity, Expense>(await _context.Expenses.AsNoTracking().Include(e => e.Category).SingleOrDefaultAsync(e => e.Id == expenseId && e.UserId == user.Id));
         }
 
         public async Task<Expense> Update(Expense expense)
         {
-            var expenseToUpdate = await _context.Expenses.SingleOrDefaultAsync(e => e.Id == expense.Id);
+            var expenseToUpdate = _mapper.Map<ExpenseEntity>(expense);
+            _context.Attach(expenseToUpdate);
+            _context.Entry(expenseToUpdate).State = EntityState.Modified;
 
-            if(expenseToUpdate == null)
-                return null;
-
-            expenseToUpdate.Amount = expense.Amount;
-            expenseToUpdate.Description = expense.Description;
-            expenseToUpdate.Date = expense.Date;
-            
-            if(expense.Category != null)
-                expenseToUpdate.CategoryId = expense.Category.Id;
-
-            await _context.SaveChangesAsync();
             return expense;
         }
 
@@ -117,10 +110,14 @@ namespace ExpenseTracker.Persistence.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<int> GetCount()
+        public async Task<int> GetCount(User user)
         {
-            // return Task.FromResult<int>(_context.Expenses.Count());
-            return await _context.Expenses.CountAsync();
+            return await _context.Expenses.CountAsync(e => e.UserId == user.Id);
+        }
+
+        public async Task<bool> Exists(User user, int expenseId)
+        {
+            return await _context.Expenses.AnyAsync(e => e.Id == expenseId && e.UserId == user.Id);
         }
     }
 }

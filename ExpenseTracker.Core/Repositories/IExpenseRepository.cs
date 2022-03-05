@@ -11,18 +11,22 @@ namespace ExpenseTracker.Core.Repositories
 
         Task Add(IEnumerable<Expense> expenses);
 
-        Task<Expense> Delete(int id);
+        void Delete(Expense expense);
 
-        Task<IEnumerable<Expense>> Expenses(Func<Expense, bool> filter);
+        Task<IEnumerable<Expense>> Expenses(User user);
 
-        Task<IEnumerable<Expense>> Expenses(Func<Expense, bool> filter, int limit, int offset, bool oldestFirst);
+        Task<IEnumerable<Expense>> Expenses(User user, Func<Expense, bool> filter);
 
-        Task<Expense> Get(int id);
+        Task<IEnumerable<Expense>> Expenses(User user, Func<Expense, bool> filter, int limit, int offset, bool oldestFirst);
 
-        public Task<Expense> Update(Expense expense);
+        Task<Expense> Get(User user, int expenseId);
+
+        Task<Expense> Update(Expense expense);
 
         Task SaveChangesAsync();
 
-        Task<int> GetCount();
+        Task<bool> Exists(User user, int expenseId);
+
+        Task<int> GetCount(User user);
     }
 }

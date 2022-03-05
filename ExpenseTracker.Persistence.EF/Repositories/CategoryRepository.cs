@@ -24,11 +24,6 @@ namespace ExpenseTracker.Persistence.Repositories
 
         public async Task<Category> Add(Category category)
         {
-            var exists = _context.Categories.Any(c => c.Name.Equals(category.Name));
-            
-            if(exists)
-                return null;
-
             var categoryEntity = _mapper.Map<CategoryEntity>(category);
             await _context.Categories.AddAsync(categoryEntity);
             await _context.SaveChangesAsync();
@@ -36,34 +31,28 @@ namespace ExpenseTracker.Persistence.Repositories
             return _mapper.Map<Category>(categoryEntity);
         }
 
-        public async Task<Category> Delete(string name)
+        public void Delete(Category category)
         {
-            var category = await _context.Categories.SingleOrDefaultAsync(c => c.Name.Equals(name));
-
-            if(category == null)
-                return null;
-            
-            _context.Categories.Remove(category);
-            
-            return _mapper.Map<Category>(category);
+            var categoryToDelete = new CategoryEntity { Id = category.Id };
+            _context.Attach(categoryToDelete);
+            _context.Entry(categoryToDelete).State = EntityState.Deleted;
         }
 
 
-        public async Task<IEnumerable<Category>> Categories()
+        public async Task<IEnumerable<Category>> Categories(User user)
         {
-            var categories = await _context.Categories.AsNoTracking().ToListAsync();
+            var categories = await _context.Categories.AsNoTracking().Where(c => c.UserId == user.Id).ToListAsync();
             return categories.Select(_mapper.Map<Category>);
         }
 
-        public async Task<Category> Get(string name)
+        public async Task<Category> Get(User user, string name)
         {
-            //return _mapper.Map<Category>(await _context.Categories.SingleOrDefaultAsync(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase)));
-            return _mapper.Map<Category>(await _context.Categories.AsNoTracking().SingleOrDefaultAsync(c => c.Name.Equals(name)));
+            return _mapper.Map<Category>(await _context.Categories.AsNoTracking().SingleOrDefaultAsync(c => c.Name.Equals(name) && c.UserId == user.Id));
         }
 
         public async Task<Category> Update(Category category)
         {
-            var existing = await _context.Categories.SingleOrDefaultAsync(c => c.Id == category.Id);
+            var existing = await _context.Categories.SingleOrDefaultAsync(c => c.Id == category.Id && c.UserId == category.User.Id);
             existing.Name = category.Name;
             return _mapper.Map<Category>(existing);
         }
@@ -73,29 +62,24 @@ namespace ExpenseTracker.Persistence.Repositories
             await _context.SaveChangesAsync();
         }
 
-        // private async Task<CategoryEntity> GetCategory(string name)
-        // {
-        //     return await _context.Categories.SingleOrDefaultAsync(c => c.Name.Equals(name));
-        // }
-
-        public async Task<Category> Get(int id)
+        public async Task<Category> Get(User user, int id)
         {
-            return _mapper.Map<Category>(await _context.Categories.AsNoTracking().SingleOrDefaultAsync(c => c.Id == id));
+            return _mapper.Map<Category>(await _context.Categories.AsNoTracking().SingleOrDefaultAsync(c => c.Id == id && c.UserId == user.Id));
         }
 
-        public async Task<IEnumerable<Category>> Get(IEnumerable<string> categories)
+        public async Task<IEnumerable<Category>> Get(User user, IEnumerable<string> categories)
         {
-            return _mapper.Map<IEnumerable<Category>>(await _context.Categories.AsNoTracking().Where(c => categories.Contains(c.Name)).ToListAsync());
+            return _mapper.Map<IEnumerable<Category>>(await _context.Categories.AsNoTracking().Where(c => categories.Contains(c.Name) && c.UserId == user.Id).ToListAsync());
         }
 
-        public bool Exists(int id)
+        public async Task<bool> Exists(User user, int id)
         {
-            return _context.Categories.Any(c => c.Id == id);
+            return await _context.Categories.AnyAsync(c => c.Id == id && c.UserId == user.Id);
         }
 
-        public bool Exists(string name)
+        public async Task<bool> Exists(User user, string name)
         {
-            return _context.Categories.Any(c => c.Name.Equals(name));
+            return await _context.Categories.AnyAsync(c => c.Name.Equals(name) && c.UserId == user.Id);
         }
     }
 }

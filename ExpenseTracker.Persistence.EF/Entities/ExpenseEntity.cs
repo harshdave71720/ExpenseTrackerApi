@@ -23,5 +23,10 @@ namespace ExpenseTracker.Persistence.Entities
 
         [ForeignKey(nameof(Category))]
         public int? CategoryId { get; set; }
+
+        public UserEntity User { get; set; }
+
+        [ForeignKey(nameof(User))]
+        public int UserId { get; set; }
     }
 }
