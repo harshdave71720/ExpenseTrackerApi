@@ -30,24 +30,39 @@ namespace ExpenseTracker.Rest.Controllers
         }
 
         protected virtual IActionResult BadRequestResponseFromModelState()
-        { 
-            return StatusCode(
-                StatusCodes.Status400BadRequest,
-                new Response(
+        {
+            return BadRequest
+            (
+                new Response
+                (
                     StatusCodes.Status400BadRequest,
-                    ModelState.Where(e => e.Value?.Errors?.Count() > 0).SelectMany(e => e.Value.Errors).Select(e => e.ErrorMessage)
+                    ModelState
+                        .Where(e => e.Value?.Errors?.Count() > 0)
+                        .SelectMany(e => e.Value.Errors)
+                        .Select(e => e.ErrorMessage)
                 )
-           );
+            );
         }
 
         protected virtual IActionResult BadRequestResponse(string error)
         {
-            return StatusCode(
-                StatusCodes.Status400BadRequest,
-                new Response(
-                    StatusCodes.Status400BadRequest
-                )
-           );
+            return BadRequest(new Response(StatusCodes.Status400BadRequest));
+        }
+
+        protected virtual IActionResult OkResponseResult() 
+        {
+            return Ok(new Response(StatusCodes.Status200OK));
+        }
+
+        protected virtual IActionResult OkResponseResult(object value)
+        {
+            return Ok(new Response(StatusCodes.Status200OK, value));
+        }
+
+        protected virtual IActionResult CreatedResponseResult(object value)
+        {
+            var response = new Response(StatusCodes.Status201Created, value);
+            return StatusCode(response.StatusCode, response);
         }
     }
 }
