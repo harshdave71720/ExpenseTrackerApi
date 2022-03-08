@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ExpenseTracker.Core.Repositories;
 using ExpenseTracker.Core.Helpers;
+using ExpenseTracker.Core.Exceptions;
 
 namespace ExpenseTracker.Core.Services
 {
@@ -22,7 +23,7 @@ namespace ExpenseTracker.Core.Services
         {
             Guard.AgainstNull(user, nameof(user));
             if (await _userRepository.Exists(user.Email))
-                return null;
+                throw new BadRequestException(ErrorMessages.UserAlreadyExists(user.Email));
 
             var addedUser = await _userRepository.Add(user);
             return addedUser;
