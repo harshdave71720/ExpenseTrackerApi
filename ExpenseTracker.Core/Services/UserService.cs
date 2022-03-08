@@ -14,7 +14,7 @@ namespace ExpenseTracker.Core.Services
 
         public UserService(IUserRepository userRepository)
         {
-            Guard.AgainstNull(userRepository, nameof(userRepository));
+            Guard.AgainstDependencyNull(userRepository);
             _userRepository = userRepository;
         }
 

@@ -7,6 +7,7 @@ using ExpenseTracker.Core.Repositories;
 using ExpenseTracker.Core.Helpers;
 using ExpenseTracker.Core.Helpers.Templates;
 using System.IO;
+using ExpenseTracker.Core.Exceptions;
 
 namespace ExpenseTracker.Core.Services
 {
@@ -18,98 +19,73 @@ namespace ExpenseTracker.Core.Services
 
         public ExpenseService(IExpenseRepository expenseRepository, ICategoryRepository categoryRepository, IUserRepository userRepository)
         {
-            Guard.AgainstNull(expenseRepository, nameof(expenseRepository));
-            Guard.AgainstNull(categoryRepository, nameof(categoryRepository));
-            Guard.AgainstNull(userRepository, nameof(userRepository));
+            Guard.AgainstDependencyNull(expenseRepository);
+            Guard.AgainstDependencyNull(categoryRepository);
+            Guard.AgainstDependencyNull(userRepository);
 
             _categoryRepository = categoryRepository;
             _expenseRepository = expenseRepository;
             _userRepository = userRepository;
         }
 
-        public async Task<IEnumerable<Expense>> Get(string userEmail)
+        public async Task<IEnumerable<Expense>> Get(User user)
         {
-            Guard.AgainstNullOrWhiteSpace(userEmail, nameof(userEmail));
-            User user = await GetUser(userEmail);
             Guard.AgainstNull(user, nameof(user));
             return await _expenseRepository.Expenses(user) ?? new List<Expense>();
         }
 
-        public async Task<IEnumerable<Expense>> GetAll(string userEmail, Func<Expense, bool> filter, int limit, int offset, bool latestFirst = true)
+        public async Task<IEnumerable<Expense>> GetAll(User user, Func<Expense, bool> filter, int limit, int offset, bool latestFirst = true)
         {
+            Guard.AgainstNull(user, nameof(user));
             Guard.AgainstZeroOrNegative(limit, nameof(limit));
             Guard.AgainstNegative(offset, nameof(offset));
-            User user = await GetUser(userEmail);
-            Guard.AgainstNull(user, nameof(user));
             return await _expenseRepository.Expenses(user, filter, limit, offset, latestFirst) ?? new List<Expense>();
         }
 
-        public async Task<Expense> Get(string userEmail, int expenseId)
+        public async Task<Expense> Get(User user, int expenseId)
         {
-            Guard.AgainstNullOrWhiteSpace(userEmail, nameof(userEmail));
-            User user = await GetUser(userEmail);
             Guard.AgainstNull(user, nameof(user));
             return await _expenseRepository.Get(user, expenseId);
         }
 
-        public async Task<IEnumerable<Expense>> Get(string userEmail, string categoryName)
+        public async Task<IEnumerable<Expense>> Get(User user, string categoryName)
         {
-            Guard.AgainstNullOrWhiteSpace(userEmail, nameof(userEmail));
-            Guard.AgainstNullOrWhiteSpace(categoryName, nameof(categoryName));
-
-            User user = await GetUser(userEmail);
             Guard.AgainstNull(user, nameof(user));
+            Guard.AgainstNullOrWhiteSpace(categoryName, nameof(categoryName));
             
             var category = await _categoryRepository.Get(user, categoryName);
 
             if(category == null)
-                return null;
+                throw new NotFoundException(ErrorMessages.CategoryNotFound(categoryName));
 
             return await _expenseRepository.Expenses(user, e => e.Category != null && e.Category.Name.Equals(category.Name, StringComparison.OrdinalIgnoreCase))
                 ?? new List<Expense>();
         }
 
-        public async Task<IEnumerable<Expense>> Get(string userEmail, Func<Expense, bool> filter)
+        public async Task<IEnumerable<Expense>> Get(User user, Func<Expense, bool> filter)
         {
-            Guard.AgainstNullOrWhiteSpace(userEmail, nameof(userEmail));
-            Guard.AgainstNull(filter, nameof(filter));
-            User user = await GetUser(userEmail);
             Guard.AgainstNull(user, nameof(user));
-            var expenses = await _expenseRepository.Expenses(user, filter) ?? new List<Expense>();
-            
-            return expenses;
+            Guard.AgainstNull(filter, nameof(filter));
+
+            return await _expenseRepository.Expenses(user, filter) ?? new List<Expense>();
         }
 
-        public async Task<Expense> Add(string userEmail, Expense expense, string categoryName = null)
+        public async Task<Expense> Add(Expense expense)
         {
-            Guard.AgainstNullOrWhiteSpace(userEmail, nameof(userEmail));
             Guard.AgainstNull(expense, nameof(expense));
-            User user = await GetUser(userEmail);
-            Guard.AgainstNull(user, nameof(user));
+            Guard.AgainstNull(expense.User, nameof(User));
 
-            if (categoryName != null)
-            {
-                var category = await _categoryRepository.Get(user, categoryName);
-                if (category == null)
-                    return null;
-
-                expense.Category = category;
-            }
-
-            expense.User = user;
             expense = await _expenseRepository.Add(expense);
             return expense;
         }
 
-        public async Task<Expense> Delete(string userEmail, int expenseId)
+        public async Task<Expense> Delete(User user, int expenseId)
         {
-            Guard.AgainstNullOrWhiteSpace(userEmail, nameof(userEmail));
-            User user = await GetUser(userEmail);
             Guard.AgainstNull(user, nameof(user));
 
             var expense = await _expenseRepository.Get(user, expenseId);
             if (expense == null)
-                return null;
+                throw new NotFoundException(ErrorMessages.ExpenseNotFound(expenseId));
 
             _expenseRepository.Delete(expense);
             await _expenseRepository.SaveChangesAsync();
@@ -117,74 +93,51 @@ namespace ExpenseTracker.Core.Services
             return expense;
         }
 
-        public async Task<Expense> Update(string userEmail, Expense expense, string categoryName = null)
+        public async Task<Expense> Update(Expense expense)
         {
-            Guard.AgainstNullOrWhiteSpace(userEmail, nameof(userEmail));
             Guard.AgainstNull(expense, nameof(expense));
-            User user = await GetUser(userEmail);
-            Guard.AgainstNull(user, nameof(user));
-            Category category = null;
+            Guard.AgainstNull(expense.User, nameof(User));
 
-            if (!await _expenseRepository.Exists(user, expense.Id))
-            { 
-                return null;
+            if (!await _expenseRepository.Exists(expense.User, expense.Id))
+            {
+                throw new NotFoundException(ErrorMessages.ExpenseNotFound(expense.Id));
             }
             
-            if(categoryName != null)
-            {
-                category = await _categoryRepository.Get(user, categoryName);
-                if(category == null)
-                    return null;
-            }
-
-            expense.Category = category;
-            expense.User = user;
             expense = await _expenseRepository.Update(expense);
             await _expenseRepository.SaveChangesAsync();
 
             return expense;
         }
 
-        public async Task<int> GetExpenseCount(string userEmail)
+        public async Task<int> GetExpenseCount(User user)
         {
-            Guard.AgainstNullOrWhiteSpace(userEmail, nameof(userEmail));
-            User user = await GetUser(userEmail);
             Guard.AgainstNull(user, nameof(user));
             return await _expenseRepository.GetCount(user);
         }
 
-        public async Task<IEnumerable<string>> Add(string userEmail, IEnumerable<KeyValuePair<Expense, string>> expenseWithCategories) 
+        public async Task Add(User user, IEnumerable<KeyValuePair<Expense, string>> expenseWithCategories) 
         {
-            User user = await GetUser(userEmail);
             Guard.AgainstNull(user, nameof(user));
-
-            List<string> errors = new List<string>();
             var categoryNames = expenseWithCategories.Where(x => x.Value != null).Select(x => x.Value).Distinct().ToList();
             var categories = await _categoryRepository.Get(user, categoryNames);
             var expenses = new List<Expense>();
+            var nonExistingCategories = categoryNames.Where(c => !categories.Any(ca => ca.Name.Equals(c, StringComparison.Ordinal)));
 
-            foreach (var pair in expenseWithCategories)
+            if (nonExistingCategories.Count() > 0)
             {
-                var expense = pair.Key;
-                var categoryName = pair.Value;
-                if (!string.IsNullOrWhiteSpace(categoryName))
-                {
-                    var category = categories.SingleOrDefault(c => c.Name.Equals(categoryName, StringComparison.OrdinalIgnoreCase));
-                    if (category == null)
-                        errors.Add($"Cannot find the category {pair.Value}");
-                    else
-                        expense.Category = category;
-                }
+                throw new ValidationException(nonExistingCategories.Select(c => $"The category : {c} does not exists"));
+            }
 
-                expense.User = user;
+            foreach (var expenseWithCategory in expenseWithCategories)
+            {
+                var expense = expenseWithCategory.Key;
+                Guard.AgainstNull(expense.User, nameof(User));
+                var categoryName = expenseWithCategory.Value;
+                expense.Category = categories.SingleOrDefault(c => c.Name.Equals(categoryName, StringComparison.OrdinalIgnoreCase));
                 expenses.Add(expense);
             }
 
-            if (errors.Count() > 0)
-                return errors;
-
             await _expenseRepository.Add(expenses);
-            return errors;
         }
 
         private async Task<User> GetUser(string email)
