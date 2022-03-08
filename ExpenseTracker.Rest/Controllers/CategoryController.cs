@@ -10,31 +10,36 @@ using ExpenseTracker.Core.Services;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using ExpenseTracker.Core.Helpers;
+using ExpenseTracker.Core.Exceptions;
+using Microsoft.AspNetCore.Http;
+using ExpenseTracker.Rest.Models;
 
-namespace ExpenseTracker.Rest.Controller
+namespace ExpenseTracker.Rest.Controllers
 {
     [Authorize]
     [Route("[controller]")]
     [ApiController]
-    public class CategoryController : ControllerBase
+    public class CategoryController : AppControllerBase
     {
         private readonly IMapper _mapper;
         private readonly ICategoryService _categoryService;
-        private readonly IUserRepository _userRepository;
-        private User _user;
 
-        public CategoryController(IMapper mapper, ICategoryService categoryService, IUserRepository userRepository)
+        public CategoryController(IMapper mapper, ICategoryService categoryService, IUserService userService)
+        : base(userService)
         {
+            Guard.AgainstDependencyNull(mapper);
+            Guard.AgainstDependencyNull(categoryService);
             _mapper = mapper;
             _categoryService = categoryService;
-            _userRepository = userRepository;
         }
 
         [HttpGet]
         [Route("")]
         public async Task<IActionResult> Get()
         {
-            return Ok((await _categoryService.Get(await GetUser())).Select(_mapper.Map<CategoryDto>) ?? new List<CategoryDto>());
+            var categories = await _categoryService.Get(await GetUser());
+            return OkResponseResult(categories.Select(_mapper.Map<CategoryDto>));
         }
 
         [HttpGet]
@@ -43,10 +48,10 @@ namespace ExpenseTracker.Rest.Controller
         {
             var cat = await _categoryService.Get(await GetUser(), category);
 
-            if(cat == null)
-                return BadRequest();
+            if (cat == null)
+                throw new NotFoundException(ErrorMessages.CategoryNotFound(category));
 
-            return Ok(_mapper.Map<CategoryDto>(cat));
+            return OkResponseResult(_mapper.Map<CategoryDto>(cat));
         }
 
         [HttpPost]
@@ -55,28 +60,21 @@ namespace ExpenseTracker.Rest.Controller
         {
             if(!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequestResponseFromModelState();
             }
 
-            var user = await GetUser();
-            if(await _categoryService.Get(user, categoryDto.Name) != null)
-                return BadRequest();
-
             Category category = _mapper.Map<Category>(categoryDto);
-            category.User = user;
-            return Ok(_mapper.Map<CategoryDto>(await _categoryService.Add(category)));
+            category.User = await GetUser();
+            var addedCategory = await _categoryService.Add(category);
+            return CreatedResponseResult(_mapper.Map<CategoryDto>(addedCategory));
         }
 
         [HttpDelete]
         [Route("{category}")]
         public async Task<IActionResult> Delete(string category)
         {
-            if(string.IsNullOrWhiteSpace(category))
-            {
-                return BadRequest();
-            }
-
-            return Ok(_mapper.Map<CategoryDto>(await _categoryService.Delete(await GetUser(), category)));
+            var deletedCategory = await _categoryService.Delete(await GetUser(), category);
+            return OkResponseResult(_mapper.Map<CategoryDto>(deletedCategory));
         }
 
         [HttpPut]
@@ -85,20 +83,13 @@ namespace ExpenseTracker.Rest.Controller
         {
             if(!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequestResponseFromModelState();
             }
 
             var category = _mapper.Map<Category>(categoryDto);
             category.User = await GetUser();
-            return Ok(_mapper.Map<CategoryDto>(await _categoryService.Update(category)));
-        }
-
-        private async Task<User> GetUser()
-        {
-            if(_user == null)
-                _user = await _userRepository.GetUser(this.User.Claims.First(c => c.Type == ClaimTypes.Email).Value);
-
-            return _user;
+            var updatedCategory = await _categoryService.Update(category);
+            return OkResponseResult(_mapper.Map<CategoryDto>(updatedCategory));
         }
     }
 }

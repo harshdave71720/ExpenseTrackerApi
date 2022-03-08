@@ -5,7 +5,7 @@ using System.IO;
 
 namespace ExpenseTracker.Rest.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     [Authorize]
     public class TemplateController : ControllerBase
