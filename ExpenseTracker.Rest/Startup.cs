@@ -12,6 +12,7 @@ using ExpenseTracker.Core.Services;
 using ExpenseTracker.Rest.Configuration;
 using Microsoft.OpenApi.Models;
 using ExpenseTracker.Identity.Infrastructure;
+using ExpenseTracker.Rest.Middlewares;
 
 namespace ExpenseTracker.Rest
 {
@@ -93,13 +94,9 @@ namespace ExpenseTracker.Rest
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
-            {
                 app.UseDeveloperExceptionPage();
-            }
             else
-            {
-                app.UseExceptionHandler("/error");
-            }
+                app.UseExceptionsToResponse();
 
             app.UseHttpsRedirection();
 
