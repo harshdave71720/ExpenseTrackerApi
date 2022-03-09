@@ -15,17 +15,14 @@ namespace ExpenseTracker.Core.Services
     {
         private readonly IExpenseRepository _expenseRepository;
         private readonly ICategoryRepository _categoryRepository;
-        private readonly IUserRepository _userRepository;
 
-        public ExpenseService(IExpenseRepository expenseRepository, ICategoryRepository categoryRepository, IUserRepository userRepository)
+        public ExpenseService(IExpenseRepository expenseRepository, ICategoryRepository categoryRepository)
         {
             Guard.AgainstDependencyNull(expenseRepository);
             Guard.AgainstDependencyNull(categoryRepository);
-            Guard.AgainstDependencyNull(userRepository);
 
             _categoryRepository = categoryRepository;
             _expenseRepository = expenseRepository;
-            _userRepository = userRepository;
         }
 
         public async Task<IEnumerable<Expense>> Get(User user)
@@ -138,12 +135,6 @@ namespace ExpenseTracker.Core.Services
             }
 
             await _expenseRepository.Add(expenses);
-        }
-
-        private async Task<User> GetUser(string email)
-        {
-            var user = await this._userRepository.GetUser(email);
-            return user;
         }
     }
 }
