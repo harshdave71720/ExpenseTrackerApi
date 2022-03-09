@@ -95,10 +95,6 @@ namespace ExpenseTracker.Rest.Controllers
         public async Task<IActionResult> Get(string category)
         {
             var results = await _expenseService.Get(await GetUser(), category);
-
-            if (results == null)
-                return NotFound();
-
             return OkResponseResult(results.Select(_mapper.Map<ExpenseDto>));
         }
 
@@ -132,7 +128,7 @@ namespace ExpenseTracker.Rest.Controllers
         public async Task<IActionResult> GetCount()
         {
             var count = await _expenseService.GetExpenseCount(await GetUser());
-            return OkResponseResult(new Response(StatusCodes.Status200OK, count));
+            return OkResponseResult(count);
         }
 
         [HttpPost]
