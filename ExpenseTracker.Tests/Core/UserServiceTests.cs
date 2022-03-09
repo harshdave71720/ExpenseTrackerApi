@@ -7,6 +7,7 @@ using ExpenseTracker.Core.Repositories;
 using Moq;
 using System.Threading.Tasks;
 using ExpenseTracker.Core.Entities;
+using ExpenseTracker.Core.Exceptions;
 
 namespace ExpenseTracker.Tests.Core
 {
@@ -16,7 +17,7 @@ namespace ExpenseTracker.Tests.Core
         [Test]
         public void Instanciation_OnRepositoryNull_ThrowsException()
         {
-            Assert.Throws<ArgumentNullException>(() => new UserService(null));
+            Assert.Throws<DependencyNullException>(() => new UserService(null));
         }
 
         [Test]
@@ -58,7 +59,7 @@ namespace ExpenseTracker.Tests.Core
         }
 
         [Test]
-        public async Task Add_OnUserAlreadyExists_ReturnsNull()
+        public void Add_OnUserAlreadyExists_ThrowsException()
         {
             // Arrange
             var userRepo = new Mock<IUserRepository>();
@@ -66,10 +67,7 @@ namespace ExpenseTracker.Tests.Core
             IUserService sut = new UserService(userRepo.Object);
 
             // Act
-            User addedUser = await sut.Add(new User(1, "abc@xyz.com", "abc", "def"));
-
-            // Assert
-            Assert.IsNull(addedUser);
+            Assert.ThrowsAsync<BadRequestException>(() => sut.Add(new User(1, "abc@xyz.com", "abc", "def")));
         }
 
         [Test]

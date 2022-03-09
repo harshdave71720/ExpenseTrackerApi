@@ -4,13 +4,15 @@ using ExpenseTracker.Rest.Controllers;
 using Moq;
 using ExpenseTracker.Core.Services;
 using AutoMapper;
-using ExpenseTracker.Rest.MapperProfiles;
 using System.Collections.Generic;
 using ExpenseTracker.Core.Entities;
 using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using ExpenseTracker.Rest.Dtos;
+using Microsoft.AspNetCore.Http;
+using ExpenseTracker.Rest.Models;
+using ExpenseTracker.Core.Exceptions;
 
 namespace ExpenseTracker.Tests.Rest
 {
@@ -29,9 +31,17 @@ namespace ExpenseTracker.Tests.Rest
 
         private Expense _expense = new Expense(id: 1, amount: 100);
 
+        private User _user = new User(1, "FirstUser@abc.com", "Firstname", "Lastname");
+
+        private Category _category = new Category(1, "Category1");
+
         private Mock<IMapper> NewMapperMock => new Mock<IMapper>();
 
         private Mock<IExpenseService> NewExpenseServiceMock => new Mock<IExpenseService>();
+
+        private Mock<ICategoryService> NewCategoryServiceMock => new Mock<ICategoryService>();
+
+        private Mock<IUserService> NewUserServiceMock => new Mock<IUserService>();
 
         private Mock<TemplateService> NewTemplateServiceMock => new Mock<TemplateService>();
 
@@ -41,7 +51,10 @@ namespace ExpenseTracker.Tests.Rest
             // Arrange
             ExpenseController sut = new ExpenseController(NewExpenseServiceMock.Object,
                                                             NewTemplateServiceMock.Object,
-                                                            NewMapperMock.Object);
+                                                            NewMapperMock.Object,
+                                                            NewCategoryServiceMock.Object,
+                                                            NewUserServiceMock.Object
+                                                            );
             sut.ModelState.AddModelError("Amount", "Amount should be positive");
 
             // Act
@@ -57,21 +70,38 @@ namespace ExpenseTracker.Tests.Rest
         {
             // Arrange
             var expenseService = NewExpenseServiceMock;
-            expenseService.Setup(x => x.Add(It.IsAny<string>(), It.IsAny<Expense>(), It.IsAny<string>())).ReturnsAsync(_expense);
+            expenseService.Setup(x => x.Add(It.IsAny<Expense>())).ReturnsAsync(_expense);
             ExpenseController sut = new ExpenseController(expenseService.Object,
                                                             NewTemplateServiceMock.Object,
-                                                            SetupDefaultMapperMock().Object);
+                                                            SetupDefaultMapperMock().Object,
+                                                            SetupDefaultCategoryServiceMock().Object,
+                                                            SetupDefaultUserServiceMock().Object
+                                                            );
 
             // Act
             IActionResult result = await sut.Add(_expenseDto);
 
             // Assert
-            Assert.IsNotNull(result);
-            Assert.IsInstanceOf<OkObjectResult>(result);
+            var objectResult = result as ObjectResult;
+            Assert.AreEqual(StatusCodes.Status201Created, objectResult.StatusCode);
+            var appResponse = objectResult.Value as Response;
+            Assert.AreEqual(StatusCodes.Status201Created, appResponse.StatusCode);
+            Assert.AreEqual(_expenseDto, appResponse.Data);
+        }
 
-            var createdExpense = ((OkObjectResult)result).Value as ExpenseDto;
-            Assert.IsNotNull(createdExpense);
-            Assert.AreEqual(_expenseDto, createdExpense);
+        [Test]
+        public void Add_OnGivenExpenseWithInvalidCategory_ThrowsException()
+        {
+            // Arrange
+            ExpenseController sut = new ExpenseController(NewExpenseServiceMock.Object,
+                                                            NewTemplateServiceMock.Object,
+                                                            SetupDefaultMapperMock().Object,
+                                                            NewCategoryServiceMock.Object,
+                                                            SetupDefaultUserServiceMock().Object
+                                                            );
+
+            // Act
+            Assert.ThrowsAsync<NotFoundException>(() => sut.Add(_expenseDto));
         }
 
         [Test]
@@ -79,19 +109,22 @@ namespace ExpenseTracker.Tests.Rest
         {
             // Arrange
             var expenseService = NewExpenseServiceMock;
-            expenseService.Setup(x => x.Get(It.IsAny<string>())).ReturnsAsync(new List<Expense> { _expense });
+            expenseService.Setup(x => x.Get(It.IsAny<User>())).ReturnsAsync(new List<Expense> { _expense });
             ExpenseController sut = new ExpenseController(expenseService.Object,
                                                             NewTemplateServiceMock.Object,
-                                                            SetupDefaultMapperMock().Object);
+                                                            SetupDefaultMapperMock().Object,
+                                                            NewCategoryServiceMock.Object,
+                                                            SetupDefaultUserServiceMock().Object);
 
             // Act
-            var response = await sut.Get();
-            Assert.IsNotNull(response);
-            Assert.IsInstanceOf<OkObjectResult>(response);
+            var result = await sut.Get();
 
-            var expenses = (IEnumerable<ExpenseDto>)((OkObjectResult)response).Value;
-            Assert.AreEqual(1, expenses.Count());
-            Assert.AreEqual(_expenseDto, expenses.First());
+            // Assert
+            var objectResult = result as ObjectResult;
+            Assert.AreEqual(StatusCodes.Status200OK, objectResult.StatusCode);
+            var appResponse = objectResult.Value as Response;
+            Assert.AreEqual(StatusCodes.Status200OK, appResponse.StatusCode);
+            Assert.AreEqual(_expenseDto,((IEnumerable<ExpenseDto>)appResponse.Data).First());
         }
 
         [Test]
@@ -99,38 +132,42 @@ namespace ExpenseTracker.Tests.Rest
         {
             // Arrange
             var expenseService = NewExpenseServiceMock;
-            expenseService.Setup(x => x.GetAll(It.IsAny<string>(), It.IsAny<Func<Expense, bool>>(),
+            expenseService.Setup(x => x.GetAll(It.IsAny<User>(), It.IsAny<Func<Expense, bool>>(),
                                             It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()))
                 .ReturnsAsync(new List<Expense> { _expense });
             ExpenseController sut = new ExpenseController(expenseService.Object,
                                                             NewTemplateServiceMock.Object,
-                                                            SetupDefaultMapperMock().Object);
+                                                            SetupDefaultMapperMock().Object,
+                                                            NewCategoryServiceMock.Object,
+                                                            SetupDefaultUserServiceMock().Object);
 
             // Act
-            var response = await sut.Get(1, 1, true);
-            Assert.IsNotNull(response);
-            Assert.IsInstanceOf<OkObjectResult>(response);
+            var result = await sut.Get(1, 1, true);
 
-            var expenses = (IEnumerable<ExpenseDto>)((OkObjectResult)response).Value;
-            Assert.AreEqual(1, expenses.Count());
-            Assert.AreEqual(_expenseDto, expenses.First());
+            // Assert
+            var objectResult = result as ObjectResult;
+            Assert.AreEqual(StatusCodes.Status200OK, objectResult.StatusCode);
+            var appResponse = objectResult.Value as Response;
+            Assert.AreEqual(StatusCodes.Status200OK, appResponse.StatusCode);
+            Assert.AreEqual(_expenseDto, ((IEnumerable<ExpenseDto>)appResponse.Data).First());
         }
 
         [Test]
-        public async Task Get_OnExpenseWithIdNotPresent_ReturnsNotFound()
+        public async Task Get_OnExpenseWithGivenIdNotPresent_ReturnsNotFound()
         {
             // Arrange
             var expenseService = NewExpenseServiceMock;
-            expenseService.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<int>()))
+            expenseService.Setup(x => x.Get(It.IsAny<User>(), It.IsAny<int>()))
                 .ReturnsAsync((Expense)null);
             ExpenseController sut = new ExpenseController(expenseService.Object,
                                                             NewTemplateServiceMock.Object,
-                                                            NewMapperMock.Object);
+                                                            NewMapperMock.Object,
+                                                            NewCategoryServiceMock.Object,
+                                                            SetupDefaultUserServiceMock().Object);
 
             // Act
-            var response = await sut.Get(1);
-            Assert.IsNotNull(response);
-            Assert.IsInstanceOf<NotFoundResult>(response);
+            var result = await sut.Get(1);
+            Assert.IsInstanceOf<NotFoundResult>(result);
         }
 
         [Test]
@@ -138,41 +175,22 @@ namespace ExpenseTracker.Tests.Rest
         {
             // Arrange
             var expenseService = NewExpenseServiceMock;
-            expenseService.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<int>()))
+            expenseService.Setup(x => x.Get(It.IsAny<User>(), It.IsAny<int>()))
                 .ReturnsAsync(_expense);
             ExpenseController sut = new ExpenseController(expenseService.Object,
                                                             NewTemplateServiceMock.Object,
-                                                            SetupDefaultMapperMock().Object);
-
+                                                            SetupDefaultMapperMock().Object,
+                                                            NewCategoryServiceMock.Object,
+                                                            SetupDefaultUserServiceMock().Object);
             // Act
-            var response = await sut.Get(1);
+            var result = await sut.Get(1);
 
             // Assert
-            Assert.IsNotNull(response);
-            Assert.IsInstanceOf<OkObjectResult>(response);
-
-            var returnedExpense = ((OkObjectResult)response).Value as ExpenseDto;
-            Assert.IsNotNull(returnedExpense);
-            Assert.AreEqual(_expenseDto, returnedExpense);
-        }
-
-        [Test]
-        public async Task Get_OnCategoryNotExists_ReturnsNotFound()
-        {
-            // Arrange
-            var expenseService = NewExpenseServiceMock;
-            expenseService.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync((IEnumerable<Expense>)null);
-            ExpenseController sut = new ExpenseController(expenseService.Object,
-                                                            NewTemplateServiceMock.Object,
-                                                            NewMapperMock.Object);
-
-            // Act
-            var response = await sut.Get("CAtegory1");
-
-            // Assert
-            Assert.IsNotNull(response);
-            Assert.IsInstanceOf<NotFoundResult>(response);
+            var objectResult = result as ObjectResult;
+            Assert.AreEqual(StatusCodes.Status200OK, objectResult.StatusCode);
+            var appResponse = objectResult.Value as Response;
+            Assert.AreEqual(StatusCodes.Status200OK, appResponse.StatusCode);
+            Assert.AreEqual(_expenseDto, appResponse.Data);
         }
 
         [Test]
@@ -180,60 +198,46 @@ namespace ExpenseTracker.Tests.Rest
         {
             // Arrange
             var expenseService = NewExpenseServiceMock;
-            expenseService.Setup(x => x.Get(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(new List<Expense>{ _expense });
+            expenseService.Setup(x => x.Get(It.IsAny<User>(), It.IsAny<string>()))
+                .ReturnsAsync(new List<Expense> { _expense });
             ExpenseController sut = new ExpenseController(expenseService.Object,
                                                             NewTemplateServiceMock.Object,
-                                                            SetupDefaultMapperMock().Object);
+                                                            SetupDefaultMapperMock().Object,
+                                                            NewCategoryServiceMock.Object,
+                                                            SetupDefaultUserServiceMock().Object);
 
             // Act
-            var response = await sut.Get("CAtegory1");
+            var result = await sut.Get("CAtegory1");
 
             // Assert
-            Assert.IsNotNull(response);
-            Assert.IsInstanceOf<OkObjectResult>(response);
-
-            var expenses = (IEnumerable<ExpenseDto>)((OkObjectResult)response).Value;
-            Assert.AreEqual(1, expenses.Count());
-            Assert.AreEqual(_expenseDto, expenses.First());
+            var objectResult = result as ObjectResult;
+            Assert.AreEqual(StatusCodes.Status200OK, objectResult.StatusCode);
+            var appResponse = objectResult.Value as Response;
+            Assert.AreEqual(StatusCodes.Status200OK, appResponse.StatusCode);
+            Assert.AreEqual(_expenseDto, ((IEnumerable<ExpenseDto>)appResponse.Data).First());
         }
 
         [Test]
-        public async Task Delete_OnExpenseNotPresent_ReturnsNotFound()
+        public async Task Delete_DeletesAndReturnsExpense()
         {
             // Arrange
             var expenseService = NewExpenseServiceMock;
-            expenseService.Setup(x => x.Delete(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync((Expense)null);
+            expenseService.Setup(x => x.Delete(It.IsAny<User>(), It.IsAny<int>())).ReturnsAsync(_expense);
             ExpenseController sut = new ExpenseController(expenseService.Object,
                                                             NewTemplateServiceMock.Object,
-                                                            NewMapperMock.Object);
-            // Act
-            IActionResult response = await sut.Delete(1);
-
-            // Assert
-            Assert.IsNotNull(response);
-            Assert.IsInstanceOf<NotFoundResult>(response);
-        }
-
-        [Test]
-        public async Task Delete_OnExpensePresent_DeletesAndReturnsExpense()
-        {
-            // Arrange
-            var expenseService = NewExpenseServiceMock;
-            expenseService.Setup(x => x.Delete(It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(_expense);
-            ExpenseController sut = new ExpenseController(expenseService.Object,
-                                                            NewTemplateServiceMock.Object,
-                                                            SetupDefaultMapperMock().Object);
+                                                            SetupDefaultMapperMock().Object,
+                                                            NewCategoryServiceMock.Object,
+                                                            SetupDefaultUserServiceMock().Object);
 
             // Act
-            IActionResult response = await sut.Delete(1);
+            IActionResult result = await sut.Delete(1);
 
             // Assert
-            Assert.IsNotNull(response);
-            Assert.IsInstanceOf<OkObjectResult>(response);
-
-            var deletedExpense = (ExpenseDto)((OkObjectResult)response).Value;
-            Assert.AreEqual(_expenseDto, deletedExpense);
+            var objectResult = result as ObjectResult;
+            Assert.AreEqual(StatusCodes.Status200OK, objectResult.StatusCode);
+            var appResponse = objectResult.Value as Response;
+            Assert.AreEqual(StatusCodes.Status200OK, appResponse.StatusCode);
+            Assert.AreEqual(_expenseDto, appResponse.Data);
         }
 
         [Test]
@@ -242,7 +246,9 @@ namespace ExpenseTracker.Tests.Rest
             // Arrange
             ExpenseController sut = new ExpenseController(NewExpenseServiceMock.Object,
                                                             NewTemplateServiceMock.Object,
-                                                            NewMapperMock.Object);
+                                                            NewMapperMock.Object,
+                                                            NewCategoryServiceMock.Object,
+                                                            NewUserServiceMock.Object);
             sut.ModelState.AddModelError("Amount", "Should be greater than 0");
 
             // Act
@@ -253,41 +259,26 @@ namespace ExpenseTracker.Tests.Rest
         }
 
         [Test]
-        public async Task Put_OnExpenseNotPresent_ReturnsNotFound()
+        public async Task Put_ReturnsUpdatedExpense()
         {
             // Arrange
             var expenseService = NewExpenseServiceMock;
-            expenseService.Setup(x => x.Update(It.IsAny<string>(), It.IsAny<Expense>(), It.IsAny<string>()))
-                            .ReturnsAsync((Expense)null);
-            ExpenseController sut = new ExpenseController(expenseService.Object,
-                                                            NewTemplateServiceMock.Object,
-                                                            NewMapperMock.Object);
-            // Act
-            IActionResult response = await sut.Put(new ExpenseDto());
-
-            // Assert
-            Assert.IsInstanceOf<NotFoundResult>(response);
-        }
-
-        [Test]
-        public async Task Put_OnExpensePresent_ReturnsUpdatedExpense()
-        {
-            // Arrange
-            var expenseService = NewExpenseServiceMock;
-            expenseService.Setup(x => x.Update(It.IsAny<string>(), It.IsAny<Expense>(), It.IsAny<string>()))
+            expenseService.Setup(x => x.Update(It.IsAny<Expense>()))
                             .ReturnsAsync(_expense);
             ExpenseController sut = new ExpenseController(expenseService.Object,
                                                             NewTemplateServiceMock.Object,
-                                                            SetupDefaultMapperMock().Object);
+                                                            SetupDefaultMapperMock().Object,
+                                                            NewCategoryServiceMock.Object,
+                                                            SetupDefaultUserServiceMock().Object);
             // Act
-            IActionResult response = await sut.Put(new ExpenseDto());
+            IActionResult result = await sut.Put(new ExpenseDto());
 
             // Assert
-            Assert.IsNotNull(response);
-            Assert.IsInstanceOf<OkObjectResult>(response);
-
-            var updatedExpense = (ExpenseDto)((OkObjectResult)response).Value;
-            Assert.AreEqual(_expenseDto, updatedExpense);
+            var objectResult = result as ObjectResult;
+            Assert.AreEqual(StatusCodes.Status200OK, objectResult.StatusCode);
+            var appResponse = objectResult.Value as Response;
+            Assert.AreEqual(StatusCodes.Status200OK, appResponse.StatusCode);
+            Assert.AreEqual(_expenseDto, appResponse.Data);
         }
 
         [TestCase(1)]
@@ -298,19 +289,23 @@ namespace ExpenseTracker.Tests.Rest
         {
             // Arrange
             var expenseService = NewExpenseServiceMock;
-            expenseService.Setup(x => x.GetExpenseCount(It.IsAny<string>()))
+            expenseService.Setup(x => x.GetExpenseCount(_user))
                             .ReturnsAsync(expectedCount);
             ExpenseController sut = new ExpenseController(expenseService.Object,
                                                             NewTemplateServiceMock.Object,
-                                                            NewMapperMock.Object);
+                                                            NewMapperMock.Object,
+                                                            NewCategoryServiceMock.Object,
+                                                            SetupDefaultUserServiceMock().Object);
 
             // Act
             IActionResult response = await sut.GetCount();
 
             // Assert
-            Assert.IsInstanceOf<OkObjectResult>(response);
-            int count = (int)((OkObjectResult)response).Value;
-            Assert.AreEqual(expectedCount, count);
+            var objectResult = response as ObjectResult;
+            Assert.AreEqual(StatusCodes.Status200OK, objectResult.StatusCode);
+            var appResponse = objectResult.Value as Response;
+            Assert.AreEqual(StatusCodes.Status200OK, appResponse.StatusCode);
+            Assert.AreEqual(expectedCount, appResponse.Data);
         }
 
         private Mock<IMapper> SetupDefaultMapperMock()
@@ -319,6 +314,20 @@ namespace ExpenseTracker.Tests.Rest
             mapperMock.Setup(x => x.Map<Expense>(It.IsAny<ExpenseDto>())).Returns(_expense);
             mapperMock.Setup(x => x.Map<ExpenseDto>(It.IsAny<Expense>())).Returns(_expenseDto);
             return mapperMock;
+        }
+
+        private Mock<IUserService> SetupDefaultUserServiceMock()
+        {
+            var userService = NewUserServiceMock;
+            userService.Setup(x => x.Get(It.IsAny<string>())).ReturnsAsync(_user);
+            return userService;
+        }
+
+        private Mock<ICategoryService> SetupDefaultCategoryServiceMock()
+        { 
+            var categoryService = NewCategoryServiceMock;
+            categoryService.Setup(x => x.Get(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync(_category);
+            return categoryService;
         }
 
         private void AssertExpense(ExpenseDto expectedExpense, ExpenseDto expenseToAssert)

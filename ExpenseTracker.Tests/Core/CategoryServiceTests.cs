@@ -8,6 +8,7 @@ using Moq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
+using ExpenseTracker.Core.Exceptions;
 
 namespace ExpenseTracker.Tests.Core
 {
@@ -17,7 +18,7 @@ namespace ExpenseTracker.Tests.Core
         [Test]
         public void Instanciation_OnRepositoryNull_ThrowsException()
         {
-            Assert.Throws<ArgumentNullException>(() => { new CategoryService(categoryRepository: null); });
+            Assert.Throws<DependencyNullException>(() => { new CategoryService(categoryRepository: null); });
         }
 
         [Test]
@@ -179,7 +180,7 @@ namespace ExpenseTracker.Tests.Core
         }
 
         [Test]
-        public async Task Delete_OnCategoryNotExists_ReturnsNull()
+        public void Delete_OnCategoryNotExists_ThrowsException()
         {
             // Arrange
             var categoryRepository = new Mock<ICategoryRepository>();
@@ -187,10 +188,7 @@ namespace ExpenseTracker.Tests.Core
             ICategoryService sut = new CategoryService(categoryRepository.Object);
 
             // Act
-            var category = await sut.Delete(_user, "categoryNotExisting");
-
-            // Assert
-            Assert.IsNull(category);
+            Assert.ThrowsAsync<NotFoundException>(() => sut.Delete(_user, "categoryNotExisting"));
         }
 
         [Test]
@@ -231,7 +229,7 @@ namespace ExpenseTracker.Tests.Core
         }
 
         [Test]
-        public async Task Update_OnCategoryNotExists_ReturnsNull()
+        public void Update_OnCategoryNotExists_ThrowsException()
         {
             // Arrange
             var categoryRepository = new Mock<ICategoryRepository>();
@@ -240,10 +238,7 @@ namespace ExpenseTracker.Tests.Core
             var categoryToUpdate = new Category(101, "CategoryToUpdate", _user);
 
             // Act
-            var updatedCategory = await sut.Update(categoryToUpdate);
-
-            // Assert
-            Assert.IsNull(updatedCategory);
+            Assert.ThrowsAsync<NotFoundException>(() => sut.Update(categoryToUpdate));
         }
 
         [Test]
