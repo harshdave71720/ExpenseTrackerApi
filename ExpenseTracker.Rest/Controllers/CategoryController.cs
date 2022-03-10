@@ -1,25 +1,18 @@
-using System;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using ExpenseTracker.Core.Repositories;
 using ExpenseTracker.Core.Entities;
 using ExpenseTracker.Rest.Dtos;
 using AutoMapper;
 using System.Linq;
 using ExpenseTracker.Core.Services;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 using ExpenseTracker.Core.Helpers;
 using ExpenseTracker.Core.Exceptions;
-using Microsoft.AspNetCore.Http;
-using ExpenseTracker.Rest.Models;
 
 namespace ExpenseTracker.Rest.Controllers
 {
     [Authorize]
     [Route("[controller]")]
-    [ApiController]
     public class CategoryController : AppControllerBase
     {
         private readonly IMapper _mapper;
