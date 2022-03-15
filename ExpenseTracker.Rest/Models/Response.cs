@@ -28,5 +28,10 @@ namespace ExpenseTracker.Rest.Models
         { 
             this.Errors = errors;
         }
+
+        public Response(int statusCode, string error) : this(statusCode)
+        { 
+            this.Errors = new string[] { error };
+        }
     }
 }

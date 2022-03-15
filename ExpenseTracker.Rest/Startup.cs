@@ -13,6 +13,8 @@ using ExpenseTracker.Rest.Configuration;
 using Microsoft.OpenApi.Models;
 using ExpenseTracker.Identity.Infrastructure;
 using ExpenseTracker.Rest.Middlewares;
+using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace ExpenseTracker.Rest
 {
@@ -43,7 +45,13 @@ namespace ExpenseTracker.Rest
                                 );
             });
 
-            services.AddControllers();
+            services.AddControllers()
+                .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
+
+            services.Configure<ApiBehaviorOptions>(options =>
+            {
+                options.SuppressModelStateInvalidFilter = true;
+            });
 
             services.AddSwaggerGen(options =>
             {
@@ -93,10 +101,7 @@ namespace ExpenseTracker.Rest
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
-                app.UseDeveloperExceptionPage();
-            else
-                app.UseExceptionsToResponse();
+            app.UseExceptionsToResponse();
 
             app.UseHttpsRedirection();
 

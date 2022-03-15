@@ -37,7 +37,7 @@ namespace ExpenseTracker.Identity.Infrastructure.Services
         {
             var result = await _userManager.CreateAsync(_mapper.Map<ApplicationUserDbEntity>(user), user.Password);
             if (!result.Succeeded)
-                throw new Exception("Unable to create user");
+                throw new RegistrationException(result.Errors.Select(e => e.Description));
         }
 
         public async Task<string> GetToken(LoginUserDto loginUserDto)
