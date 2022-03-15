@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using ExpenseTracker.Core.Entities;
 using ExpenseTracker.Core.Repositories;
 using ExpenseTracker.Core.Helpers;
+using ExpenseTracker.Core.Exceptions;
 
 namespace ExpenseTracker.Core.Services
 {
@@ -13,7 +14,7 @@ namespace ExpenseTracker.Core.Services
 
         public CategoryService(ICategoryRepository categoryRepository)
         {
-            Guard.AgainstNull(categoryRepository, nameof(categoryRepository));
+            Guard.AgainstDependencyNull(categoryRepository);
 
             _categoryRepository = categoryRepository;
         }
@@ -37,8 +38,8 @@ namespace ExpenseTracker.Core.Services
             Guard.AgainstNull(category, nameof(category));
             Guard.AgainstNull(category.User, nameof(category.User));
 
-            if (await this._categoryRepository.Exists(category.User, category.Name))
-                return null;
+            if (await _categoryRepository.Exists(category.User, category.Name))
+                throw new BadRequestException(ErrorMessages.CategoryAlreadyExists(category.Name));
 
             var result = await _categoryRepository.Add(category);
             return result;
@@ -51,7 +52,7 @@ namespace ExpenseTracker.Core.Services
 
             var category = await _categoryRepository.Get(user, categoryName);
             if (category == null)
-                return null;
+                throw new NotFoundException(ErrorMessages.CategoryNotFound(categoryName));
             
             _categoryRepository.Delete(category);
             await _categoryRepository.SaveChangesAsync();
@@ -62,9 +63,10 @@ namespace ExpenseTracker.Core.Services
         {
             Guard.AgainstNull(category, nameof(category));
             Guard.AgainstNull(category.User, nameof(category.User));
+
             if (!await _categoryRepository.Exists(category.User, category.Id))
             {
-                return null;
+                throw new NotFoundException(ErrorMessages.CategoryNotFound(category.Name));
             }
 
             var result = await _categoryRepository.Update(category);

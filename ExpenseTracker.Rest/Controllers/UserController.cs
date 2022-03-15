@@ -9,21 +9,25 @@ using ExpenseTracker.Identity.Dtos;
 using ExpenseTracker.Identity.Services;
 using System.Transactions;
 using Microsoft.AspNetCore.Authorization;
+using ExpenseTracker.Rest.Models;
+using System.Linq;
+using ExpenseTracker.Core.Helpers;
 
 namespace ExpenseTracker.Rest.Controllers
 {
     [Route("[controller]")]
-    [ApiController]
     [Authorize]
-    public class UserController : ControllerBase
+    public class UserController : AppControllerBase
     {
-        private readonly IUserService _userService;
         private readonly IIdentiyUserService _identityUserService;
         private readonly IMapper _mapper;
 
         public UserController(IUserService userService, IMapper mapper, IIdentiyUserService IdentityUserService)
-        { 
-            _userService = userService;
+            : base(userService)
+        {
+            Guard.AgainstDependencyNull(mapper);
+            Guard.AgainstDependencyNull(IdentityUserService);
+
             _mapper = mapper;
             _identityUserService = IdentityUserService;
         }
@@ -37,16 +41,16 @@ namespace ExpenseTracker.Rest.Controllers
             if (user == null)
                 return NotFound();
 
-            return Ok(_mapper.Map<UserDto>(user));
+            return OkResponseResult(_mapper.Map<UserDto>(user));
         }
 
         [Route("register")]
         [HttpPost]
         [AllowAnonymous]
         public async Task<IActionResult> Register(RegisterUserDto user)
-        { 
-            if(!ModelState.IsValid)
-                return BadRequest(ModelState);
+        {
+            if (!ModelState.IsValid)
+                return BadRequestResponseFromModelState();
 
             User addedUser = null;
             using (TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
@@ -57,13 +61,7 @@ namespace ExpenseTracker.Rest.Controllers
                 scope.Complete();
             }
 
-            //await _identityUserService.Register(user);
-            //addedUser = await _userService.Add(_mapper.Map<User>(user));
-
-            if (addedUser == null)
-                return BadRequest();
-
-            return Ok(_mapper.Map<UserDto>(addedUser));
+            return CreatedResponseResult(_mapper.Map<UserDto>(addedUser));
         }
 
         [Route("token")]
@@ -72,14 +70,12 @@ namespace ExpenseTracker.Rest.Controllers
         public async Task<IActionResult> GetToken([FromBody]LoginUserDto user)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
+            {
+                return BadRequestResponseFromModelState();
+            }
+                
             var token = await _identityUserService.GetToken(user);
-
-            if(token == null)
-                return Forbid();
-
-            return Ok(new { Token = token });
+            return OkResponseResult(new { Token = token });
         }
     }
 }

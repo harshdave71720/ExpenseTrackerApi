@@ -7,6 +7,7 @@ using System.Linq;
 using System.Collections.Generic;
 using ExpenseTracker.Core.Repositories;
 using System.Threading.Tasks;
+using ExpenseTracker.Core.Exceptions;
 
 namespace ExpenseTracker.Tests.Core
 {
@@ -26,61 +27,27 @@ namespace ExpenseTracker.Tests.Core
         private Expense _expense = new Expense(amount: 1001.1);
         private Mock<IExpenseRepository> NewExpenseRepositoryMock => new Mock<IExpenseRepository>();
         private Mock<ICategoryRepository> NewCategoryRepositoryMock => new Mock<ICategoryRepository>();
-        private Mock<IUserRepository> NewUserRepositoryMock => new Mock<IUserRepository>();
+        //private Mock<IUserRepository> NewUserRepositoryMock => new Mock<IUserRepository>();
         [Test]
         public void Instanciation_OnAnyRepositoryNull_ThrowsException()
         {
             // Assert and Act
-            Assert.Throws<ArgumentNullException>(
-                () => new ExpenseService(null, NewCategoryRepositoryMock.Object, NewUserRepositoryMock.Object)
+            Assert.Throws<DependencyNullException>(
+                () => new ExpenseService(null, NewCategoryRepositoryMock.Object)
             );
-            Assert.Throws<ArgumentNullException>(
-                () => new ExpenseService(NewExpenseRepositoryMock.Object, null, NewUserRepositoryMock.Object)
-            );
-            Assert.Throws<ArgumentNullException>(
-                () => new ExpenseService(NewExpenseRepositoryMock.Object, NewCategoryRepositoryMock.Object, null)
+            Assert.Throws<DependencyNullException>(
+                () => new ExpenseService(NewExpenseRepositoryMock.Object, null)
             );
         }
 
         [Test]
-        public void Get_OnEmailNullOrWhiteSpace_ThrowException()
+        public void Get_UserNull_ThrowsException()
         {
             // Arrange
             IExpenseService sut = new ExpenseService(NewExpenseRepositoryMock.Object,
-                                                                NewCategoryRepositoryMock.Object,
-                                                                NewUserRepositoryMock.Object);
+                                                                NewCategoryRepositoryMock.Object);
             // Act
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Get(null));
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Get(String.Empty));
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Get("     "));
-
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Get(null, 1));
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Get(String.Empty, 1));
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Get("     ", 1));
-
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Get(null, "CategoryName"));
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Get(String.Empty, "CategoryName"));
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Get("     ", "CategoryName"));
-
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Get(null, e => e.Id == 1));
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Get(String.Empty, e => e.Id == 1));
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Get("     ", e => e.Id == 1));
-        }
-
-        [Test]
-        public void Get_OnUserNotExists_ThrowsException()
-        {
-            // Arrange
-            var userRepoMock = NewUserRepositoryMock;
-            userRepoMock.Setup(x => x.GetUser(It.IsAny<string>())).ReturnsAsync((User)null);
-            IExpenseService sut = new ExpenseService(NewExpenseRepositoryMock.Object,
-                                                                NewCategoryRepositoryMock.Object,
-                                                                userRepoMock.Object);
-            // Act and Assert
-            Assert.ThrowsAsync<ArgumentNullException>(() => sut.Get("NotAUser"));
-            Assert.ThrowsAsync<ArgumentNullException>(() => sut.Get("NotAUser", 1));
-            Assert.ThrowsAsync<ArgumentNullException>(() => sut.Get("NotAUser", "Category1"));
-            Assert.ThrowsAsync<ArgumentNullException>(() => sut.Get("NotAUser", filter: null));
+            Assert.ThrowsAsync<ArgumentNullException>(() => sut.Get(null));
         }
 
         [Test]
@@ -88,28 +55,26 @@ namespace ExpenseTracker.Tests.Core
         {
             // Arrange
             var expenseRepoMock = NewExpenseRepositoryMock;
-            expenseRepoMock.Setup(x => x.Expenses(It.IsAny<User>())).ReturnsAsync(_expenses);
+            expenseRepoMock.Setup(x => x.Expenses(_user)).ReturnsAsync(_expenses);
             IExpenseService sut = new ExpenseService(expenseRepoMock.Object,
-                                                                NewCategoryRepositoryMock.Object,
-                                                                SetUpDefualtUserRepository().Object);
+                                                                NewCategoryRepositoryMock.Object);
             // Act
-            var expenses = await sut.Get("User@abc.com");
+            var expenses = await sut.Get(_user);
 
             // Assert
             Assert.AreEqual(_expenses, expenses);
         }
 
         [Test]
-        public async Task Get_OnUserExistsAndExpensesNotPresent_ReturnsExptyCollection()
+        public async Task Get_OnUserExistsAndExpensesNotPresent_ReturnsEmptyCollection()
         {
             // Arrange
             var expenseRepoMock = NewExpenseRepositoryMock;
-            expenseRepoMock.Setup(x => x.Expenses(It.IsAny<User>())).ReturnsAsync((IEnumerable<Expense>)null);
+            expenseRepoMock.Setup(x => x.Expenses(_user)).ReturnsAsync((IEnumerable<Expense>)null);
             IExpenseService sut = new ExpenseService(expenseRepoMock.Object,
-                                                                NewCategoryRepositoryMock.Object,
-                                                                SetUpDefualtUserRepository().Object);
+                                                                NewCategoryRepositoryMock.Object);
             // Act
-            var expenses = await sut.Get("User@abc.com");
+            var expenses = await sut.Get(_user);
 
             // Assert
             Assert.IsEmpty(expenses);
@@ -122,10 +87,9 @@ namespace ExpenseTracker.Tests.Core
             var expenseRepoMock = NewExpenseRepositoryMock;
             expenseRepoMock.Setup(x => x.Get(_user, It.IsAny<int>())).ReturnsAsync(_expense);
             IExpenseService sut = new ExpenseService(expenseRepoMock.Object,
-                                                                NewCategoryRepositoryMock.Object,
-                                                                SetUpDefualtUserRepository().Object);
+                                                                NewCategoryRepositoryMock.Object);
             // Act
-            var expense = await sut.Get("User@abc.com", 1);
+            var expense = await sut.Get(_user, 1);
 
             // Assert
             Assert.AreEqual(_expense, expense);
@@ -136,30 +100,25 @@ namespace ExpenseTracker.Tests.Core
         {
             // Arrange
             IExpenseService sut = new ExpenseService(NewExpenseRepositoryMock.Object,
-                                                        NewCategoryRepositoryMock.Object,
-                                                        SetUpDefualtUserRepository().Object);
+                                                        NewCategoryRepositoryMock.Object);
 
             // Act and Assert
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Get("userEmail", category: null));
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Get("userEmail", category: String.Empty));
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Get("userEmail", category: ""));
+            Assert.ThrowsAsync<ArgumentException>(() => sut.Get(_user, category: null));
+            Assert.ThrowsAsync<ArgumentException>(() => sut.Get(_user, category: String.Empty));
+            Assert.ThrowsAsync<ArgumentException>(() => sut.Get(_user, category: ""));
         }
 
         [Test]
-        public async Task Get_OnCategoryNotExists_ReturnsNull()
+        public void Get_OnCategoryNotExists_ThrowsException()
         {
             // Arrange
             var categoryRepoMock = NewCategoryRepositoryMock;
-            categoryRepoMock.Setup(x => x.Get(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync((Category)null);
+            categoryRepoMock.Setup(x => x.Get(_user, It.IsAny<string>())).ReturnsAsync((Category)null);
             IExpenseService sut = new ExpenseService(NewExpenseRepositoryMock.Object,
-                                                        categoryRepoMock.Object,
-                                                        SetUpDefualtUserRepository().Object);
+                                                        categoryRepoMock.Object);
 
             // Act
-            var expenses = await sut.Get("User@abc.com", "Category1");
-
-            // Assert
-            Assert.IsNull(expenses);
+            Assert.ThrowsAsync<NotFoundException>(() => sut.Get(_user, "Category1"));
         }
 
         [Test]
@@ -169,11 +128,10 @@ namespace ExpenseTracker.Tests.Core
             var expenseRepoMock = NewExpenseRepositoryMock;
             expenseRepoMock.Setup(x => x.Expenses(It.IsAny<User>(), It.IsAny<Func<Expense, bool>>())).ReturnsAsync(_expenses);
             IExpenseService sut = new ExpenseService(expenseRepoMock.Object,
-                                                        SetUpDefualtCategoryRepository().Object,
-                                                        SetUpDefualtUserRepository().Object);
+                                                        SetUpDefualtCategoryRepository().Object);
 
             // Act
-            var expenses = await sut.Get("User@abc.com", "Category1");
+            var expenses = await sut.Get(_user, "Category1");
 
             // Assert
             Assert.AreEqual(_expenses, expenses);
@@ -186,11 +144,10 @@ namespace ExpenseTracker.Tests.Core
             var expenseRepoMock = NewExpenseRepositoryMock;
             expenseRepoMock.Setup(x => x.Expenses(It.IsAny<User>(), It.IsAny<Func<Expense, bool>>())).ReturnsAsync((IEnumerable<Expense>)null);
             IExpenseService sut = new ExpenseService(expenseRepoMock.Object,
-                                                        SetUpDefualtCategoryRepository().Object,
-                                                        SetUpDefualtUserRepository().Object);
+                                                        SetUpDefualtCategoryRepository().Object);
 
             // Act
-            var expenses = await sut.Get("User@abc.com", "Category1");
+            var expenses = await sut.Get(_user, "Category1");
 
             // Assert
             Assert.IsEmpty(expenses);
@@ -203,11 +160,10 @@ namespace ExpenseTracker.Tests.Core
             var expenseRepoMock = NewExpenseRepositoryMock;
             expenseRepoMock.Setup(x => x.Expenses(It.IsAny<User>(), It.IsAny<Func<Expense, bool>>())).ReturnsAsync(_expenses);
             IExpenseService sut = new ExpenseService(expenseRepoMock.Object,
-                                                        SetUpDefualtCategoryRepository().Object,
-                                                        SetUpDefualtUserRepository().Object);
+                                                        SetUpDefualtCategoryRepository().Object);
 
             // Act
-            var expenses = await sut.Get("User@abc.com", e => e.Id == 1);
+            var expenses = await sut.Get(_user, e => e.Id == 1);
 
             // Assert
             Assert.AreEqual(_expenses, expenses);
@@ -222,26 +178,13 @@ namespace ExpenseTracker.Tests.Core
                 .Setup(x => x.Expenses(It.IsAny<User>(), It.IsAny<Func<Expense, bool>>()))
                 .ReturnsAsync((IEnumerable<Expense>)null);
             IExpenseService sut = new ExpenseService(expenseRepoMock.Object,
-                                                        SetUpDefualtCategoryRepository().Object,
-                                                        SetUpDefualtUserRepository().Object);
+                                                        SetUpDefualtCategoryRepository().Object);
 
             // Act
-            var expenses = await sut.Get("User@abc.com", e => e.Id == 1);
+            var expenses = await sut.Get(_user, e => e.Id == 1);
 
             // Assert
             Assert.IsEmpty(expenses);
-        }
-
-        [Test]
-        public void Add_OnEmailNullOrWhiteSpace_ThrowsException()
-        {
-            // Arrage
-            IExpenseService sut = new ExpenseService(NewExpenseRepositoryMock.Object,
-                                                       NewCategoryRepositoryMock.Object,
-                                                       NewUserRepositoryMock.Object);
-
-            // Act
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Add(null, _expense, categoryName: null));
         }
 
         [Test]
@@ -249,42 +192,21 @@ namespace ExpenseTracker.Tests.Core
         {
             // Arrage
             IExpenseService sut = new ExpenseService(NewExpenseRepositoryMock.Object,
-                                                       NewCategoryRepositoryMock.Object,
-                                                       NewUserRepositoryMock.Object);
+                                                       NewCategoryRepositoryMock.Object);
 
             // Act
-            Assert.ThrowsAsync<ArgumentNullException>(() => sut.Add("user@abc.com", null, categoryName: null));
+            Assert.ThrowsAsync<ArgumentNullException>(() => sut.Add(null));
         }
 
         [Test]
-        public void Add_OnUserNotExists_ThrowsException()
+        public void Add_OnUserNull_ThrowsException()
         {
             // Arrage
-            var userRepoMock = NewUserRepositoryMock;
-            userRepoMock.Setup(x => x.GetUser(It.IsAny<string>())).ReturnsAsync((User)null);
             IExpenseService sut = new ExpenseService(NewExpenseRepositoryMock.Object,
-                                                       NewCategoryRepositoryMock.Object,
-                                                       NewUserRepositoryMock.Object);
+                                                       NewCategoryRepositoryMock.Object);
 
             // Act
-            Assert.ThrowsAsync<ArgumentNullException>(() => sut.Add("user@abc.com", null, categoryName: null));
-        }
-
-        [Test]
-        public async Task Add_OnGivenCategoryNotExists_ReturnsNull()
-        {
-            // Arrage
-            var categoryRepoMock = NewCategoryRepositoryMock;
-            categoryRepoMock.Setup(x => x.Get(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync((Category)null);
-            IExpenseService sut = new ExpenseService(NewExpenseRepositoryMock.Object,
-                                                       categoryRepoMock.Object,
-                                                       SetUpDefualtUserRepository().Object);
-
-            // Act
-            var addedExpense = await sut.Add("user@abc.com", _expense, categoryName: null);
-
-            // Assert
-            Assert.IsNull(addedExpense);
+            Assert.ThrowsAsync<ArgumentNullException>(() => sut.Add(_expense));
         }
 
         [Test]
@@ -292,34 +214,31 @@ namespace ExpenseTracker.Tests.Core
         {
             // Arrage
             var expenseRepoMock = NewExpenseRepositoryMock;
-            var expenseToAdd = new Expense(amount: 195.678);
+            var expenseToAdd = new Expense(amount: 195.678, _user);
             expenseRepoMock.Setup(x => x.Add(It.IsAny<Expense>())).ReturnsAsync(expenseToAdd);
             var categoryRepoMock = SetUpDefualtCategoryRepository();
             IExpenseService sut = new ExpenseService(expenseRepoMock.Object,
-                                                       categoryRepoMock.Object,
-                                                       SetUpDefualtUserRepository().Object);
+                                                       categoryRepoMock.Object);
 
             // Act
-            var addedExpense = await sut.Add("user@abc.com", expenseToAdd, "Category1");
+            var addedExpense = await sut.Add(expenseToAdd);
 
             // Assert
             Assert.AreEqual(expenseToAdd, addedExpense);
             expenseRepoMock.Verify(x => x.Add(expenseToAdd), Times.Once);
-            categoryRepoMock.Verify(x => x.Get(_user, "Category1"), Times.Once);
         }
 
         [Test]
         public async Task Add_ProvidedWithUserAndNoCategory_AddAndReturnsExpense()
         {
             // Arrage
+            var expenseToAdd = new Expense(amount: 195.678, _user);
             var expenseRepoMock = NewExpenseRepositoryMock;
-            var expenseToAdd = new Expense(amount: 195.678);
             expenseRepoMock.Setup(x => x.Add(It.IsAny<Expense>())).ReturnsAsync(expenseToAdd);
             IExpenseService sut = new ExpenseService(expenseRepoMock.Object,
-                                                       NewCategoryRepositoryMock.Object,
-                                                       SetUpDefualtUserRepository().Object);
+                                                       NewCategoryRepositoryMock.Object);
             // Act
-            var addedExpense = await sut.Add("user@abc.com", expenseToAdd, null);
+            var addedExpense = await sut.Add(expenseToAdd);
 
             // Assert
             Assert.AreEqual(expenseToAdd, addedExpense);
@@ -327,48 +246,27 @@ namespace ExpenseTracker.Tests.Core
         }
 
         [Test]
-        public void Delete_OnEmailNullOrWhitespace_ThrowsException()
+        public void Delete_OnUserNull_ThrowsException()
         {
             // Arrange
             IExpenseService sut = new ExpenseService(NewExpenseRepositoryMock.Object,
-                                                       NewCategoryRepositoryMock.Object,
-                                                       NewUserRepositoryMock.Object);
+                                                       NewCategoryRepositoryMock.Object);
 
             // Act and Assert
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Delete(null, 1));
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Delete(String.Empty, 1));
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Delete("   ", 1));
+            Assert.ThrowsAsync<ArgumentNullException>(() => sut.Delete(null, 1));
         }
 
         [Test]
-        public void Delete_OnUserNotExists_ThrowsException()
-        {
-            // Arrange
-            var userRepoMock = NewUserRepositoryMock;
-            userRepoMock.Setup(x => x.GetUser(It.IsAny<string>())).ReturnsAsync((User)null);
-            IExpenseService sut = new ExpenseService(NewExpenseRepositoryMock.Object,
-                                                       NewCategoryRepositoryMock.Object,
-                                                       userRepoMock.Object);
-
-            // Act and Assert
-            Assert.ThrowsAsync<ArgumentNullException>(() => sut.Delete("NonExistingUser", 1));
-        }
-
-        [Test]
-        public async Task Delete_OnExpenseNotExist_ReturnsNull()
+        public void Delete_OnExpenseNotExist_ThrowsException()
         {
             // Arrange
             var expenseRepository = new Mock<IExpenseRepository>();
             expenseRepository.Setup(x => x.Get(It.IsAny<User>(), It.IsAny<int>())).ReturnsAsync((Expense)null);
             IExpenseService sut = new ExpenseService(expenseRepository.Object,
-                                                        NewCategoryRepositoryMock.Object,
-                                                        SetUpDefualtUserRepository().Object);
+                                                        NewCategoryRepositoryMock.Object);
 
             // Act
-            Expense deletedExpense = await sut.Delete("abc@xyz.com", 1);
-
-            // Assert
-            Assert.IsNull(deletedExpense);
+            Assert.ThrowsAsync<NotFoundException>(() => sut.Delete(_user, 1));
         }
 
         [Test]
@@ -378,11 +276,10 @@ namespace ExpenseTracker.Tests.Core
             var expenseRepository = NewExpenseRepositoryMock;
             expenseRepository.Setup(x => x.Get(It.IsAny<User>(), It.IsAny<int>())).ReturnsAsync(_expense);
             IExpenseService sut = new ExpenseService(expenseRepository.Object,
-                                                                NewCategoryRepositoryMock.Object,
-                                                                SetUpDefualtUserRepository().Object);
+                                                                NewCategoryRepositoryMock.Object);
 
             // Act
-            Expense deletedExpense = await sut.Delete("Abc@xyz.com", 1);
+            Expense deletedExpense = await sut.Delete(_user, 1);
 
             // Assert
             Assert.AreEqual(_expense, deletedExpense);
@@ -391,118 +288,67 @@ namespace ExpenseTracker.Tests.Core
         }
 
         [Test]
-        public void Update_OnEmailNullOrWhiteSpace_ThrowsException()
-        {
-            // Arrange
-            IExpenseService sut = new ExpenseService(NewExpenseRepositoryMock.Object,
-                                                                NewCategoryRepositoryMock.Object,
-                                                                NewUserRepositoryMock.Object);
-
-            // Act and Assert
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Update(null, _expense, "Category1"));
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Update(String.Empty, _expense, "Category1"));
-            Assert.ThrowsAsync<ArgumentException>(() => sut.Update("  ", _expense, "Category1"));
-        }
-
-        [Test]
         public void Update_OnExpenseNull_ThrowsException()
         {
             // Arrange
             IExpenseService sut = new ExpenseService(NewExpenseRepositoryMock.Object,
-                                                                NewCategoryRepositoryMock.Object,
-                                                                NewUserRepositoryMock.Object);
+                                                                NewCategoryRepositoryMock.Object);
 
             // Act and Assert
-            Assert.ThrowsAsync<ArgumentNullException>(() => sut.Update("abc@xyz.com", null, "Category1"));
+            Assert.ThrowsAsync<ArgumentNullException>(() => sut.Update(null));
         }
 
         [Test]
-        public void Update_OnUserNotExists_ThrowsException()
+        public void Update_OnUserNull_ThrowsException()
         {
             // Arrange
-            var userRepository = NewUserRepositoryMock;
-            userRepository.Setup(x => x.GetUser(It.IsAny<string>())).ReturnsAsync((User)null);
             IExpenseService sut = new ExpenseService(NewExpenseRepositoryMock.Object,
-                                                                NewCategoryRepositoryMock.Object,
-                                                                userRepository.Object);
+                                                                NewCategoryRepositoryMock.Object);
 
             // Act and Assert
-            Assert.ThrowsAsync<ArgumentNullException>(() => sut.Update("abc@xyz.com", _expense, "Category1"));
+            Assert.ThrowsAsync<ArgumentNullException>(() => sut.Update(new Expense(100)));
         }
 
         [Test]
-        public async Task Update_ExpenseNotPresent_ReturnsNull()
+        public void Update_ExpenseNotPresent_ThrowsException()
         {
             // Arrange
             var expenseRepository = NewExpenseRepositoryMock;
             expenseRepository.Setup(x => x.Exists(It.IsAny<User>(), It.IsAny<int>())).ReturnsAsync(false);
             IExpenseService sut = new ExpenseService(expenseRepository.Object,
-                                                                NewCategoryRepositoryMock.Object,
-                                                                SetUpDefualtUserRepository().Object);
+                                                                NewCategoryRepositoryMock.Object);
 
             // Assert
-            Expense updatedExpense = await sut.Update("abc@xyz.com", _expense, "Category1");
-        }
-
-        [Test]
-        public async Task Update_OnCategoryProvidedAndNotExists_ReturnsNull()
-        {
-            // Arrange
-            var categoryRepository = NewCategoryRepositoryMock;
-            categoryRepository.Setup(x => x.Get(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync((Category)null);
-            IExpenseService sut = new ExpenseService(NewExpenseRepositoryMock.Object,
-                                                                categoryRepository.Object,
-                                                                SetUpDefualtUserRepository().Object);
-            // Act
-            Expense updatedExpense = await sut.Update("abc@xyz.com", _expense);
-
-            // Assert
-            Assert.IsNull(updatedExpense);
+            Assert.ThrowsAsync<NotFoundException>(() => sut.Update(new Expense(1, _user)));
         }
 
         [Test]
         public async Task Update_OnExpenseValid_UpdatesAndReturnsExpense()
         {
             // Arrange
+            var expense = new Expense(112, _user);
             var expenseRepository = NewExpenseRepositoryMock;
             expenseRepository.Setup(x => x.Exists(It.IsAny<User>(), It.IsAny<int>())).ReturnsAsync(true);
             expenseRepository.Setup(x => x.Update(It.IsAny<Expense>())).ReturnsAsync(_expense);
             IExpenseService sut = new ExpenseService(expenseRepository.Object,
-                                                                SetUpDefualtCategoryRepository().Object,
-                                                                SetUpDefualtUserRepository().Object);
+                                                                SetUpDefualtCategoryRepository().Object);
             // Act
-            Expense updatedExpense = await sut.Update("abc@xyz.com", _expense);
+            Expense updatedExpense = await sut.Update(expense);
 
             // Assert
             Assert.AreEqual(_expense, updatedExpense);
-            expenseRepository.Verify(x => x.Update(_expense), Times.Once);
+            expenseRepository.Verify(x => x.Update(expense), Times.Once);
             expenseRepository.Verify(x => x.SaveChangesAsync(), Times.Once);
         }
 
         [Test]
-        public void GetExpenseCount_OnEmailNullOrWhiteSpace_ThrowsException()
+        public void GetExpenseCount_OnUser_ThrowsException()
         {
             // Arrange
             IExpenseService sut = new ExpenseService(NewExpenseRepositoryMock.Object,
-                                                                NewCategoryRepositoryMock.Object,
-                                                                NewUserRepositoryMock.Object);
+                                                                NewCategoryRepositoryMock.Object);
             // Act and Assert
-            Assert.ThrowsAsync<ArgumentException>(() => sut.GetExpenseCount(null));
-            Assert.ThrowsAsync<ArgumentException>(() => sut.GetExpenseCount(String.Empty));
-            Assert.ThrowsAsync<ArgumentException>(() => sut.GetExpenseCount("   "));
-        }
-
-        [Test]
-        public void GetExpenseCount_OnUserNotExists_ThrowsException()
-        {
-            // Arrange
-            var userRepository = NewUserRepositoryMock;
-            userRepository.Setup(x => x.GetUser(It.IsAny<string>())).ReturnsAsync((User)null);
-            IExpenseService sut = new ExpenseService(NewExpenseRepositoryMock.Object,
-                                                                NewCategoryRepositoryMock.Object,
-                                                                NewUserRepositoryMock.Object);
-            // Act and Assert
-            Assert.ThrowsAsync<ArgumentNullException>(() => sut.GetExpenseCount("abc@xyz.com"));
+            Assert.ThrowsAsync<ArgumentNullException>(() => sut.GetExpenseCount(null));
         }
 
         [TestCase(1)]
@@ -513,22 +359,14 @@ namespace ExpenseTracker.Tests.Core
             // Arrange
             var expenseRepository = NewExpenseRepositoryMock;
             expenseRepository.Setup(x => x.GetCount(It.IsAny<User>())).ReturnsAsync(expectedCount);
-            IExpenseService sut = new ExpenseService(   expenseRepository.Object, 
-                                                        NewCategoryRepositoryMock.Object,
-                                                        SetUpDefualtUserRepository().Object);
+            IExpenseService sut = new ExpenseService(expenseRepository.Object,
+                                                        NewCategoryRepositoryMock.Object);
 
             // Act
-            var expenseCount = sut.GetExpenseCount("abc@xyz.com");
+            var expenseCount = sut.GetExpenseCount(_user);
 
             // Assert
             Assert.AreEqual(expectedCount, expectedCount);
-        }
-
-        private Mock<IUserRepository> SetUpDefualtUserRepository()
-        {
-            var userRepoMock = NewUserRepositoryMock;
-            userRepoMock.Setup(m => m.GetUser(It.IsAny<string>())).ReturnsAsync(_user);
-            return userRepoMock;
         }
 
         private Mock<ICategoryRepository> SetUpDefualtCategoryRepository()
@@ -537,162 +375,5 @@ namespace ExpenseTracker.Tests.Core
             categoryRepoMock.Setup(m => m.Get(It.IsAny<User>(), It.IsAny<string>())).ReturnsAsync(_category);
             return categoryRepoMock;
         }
-
-        //private static readonly User user = new User(1, "Demo User", "Demo", "Demo");
-        //private readonly List<Expense> Expenses = new List<Expense>
-        //{
-        //    new Expense(1, 1, user, Category, "SomeDescription", DateTime.Now.Date),
-        //    new Expense(2, 1.1, user, null, "SomeDescription", DateTime.Now.Date.AddDays(1)),
-        //    new Expense(3, 1.1, user, Category, null),
-        //    new Expense(4, 1.1, user, null, null, DateTime.Now.Date.AddDays(-1)),
-        //};
-
-        //private static readonly Category Category = new Category(1, "Category123", user: user);
-
-        //[Test]
-        //public async Task Get_ReturnsAllExpenses()
-        //{
-        //    // Arrange
-        //    Mock<IExpenseRepository> expenseRepository = new Mock<IExpenseRepository>(MockBehavior.Strict);
-        //    Mock<ICategoryRepository> categoryRepository = new Mock<ICategoryRepository>(MockBehavior.Strict);
-        //    expenseRepository.Setup(x => x.Expenses(null)).ReturnsAsync(Expenses);
-        //    IExpenseService expenseService = new ExpenseService(expenseRepository.Object, categoryRepository.Object);
-
-        //    // Act
-        //    var expenses = await expenseService.Get();
-
-        //    // Assert
-        //    Assert.IsNotNull(expenses);
-        //    Assert.AreEqual(Expenses.Count(), expenses.Count());
-        //    expenseRepository.Verify(e => e.Expenses(null), Times.Once);
-        //    expenseRepository.VerifyNoOtherCalls();
-        //    categoryRepository.VerifyNoOtherCalls();
-        //}
-
-        //[Test]
-        //public async Task Get_ReturnsEmptyCollectionIfNoExpenses()
-        //{
-        //    // Arrange
-        //    Mock<IExpenseRepository> expenseRepository = new Mock<IExpenseRepository>(MockBehavior.Strict);
-        //    Mock<ICategoryRepository> categoryRepository = new Mock<ICategoryRepository>(MockBehavior.Strict);
-        //    expenseRepository.Setup(x => x.Expenses(null)).ReturnsAsync((IEnumerable<Expense>)null);
-        //    IExpenseService expenseService = new ExpenseService(expenseRepository.Object, categoryRepository.Object);
-
-        //    // Act
-        //    var expenses = await expenseService.Get();
-
-        //    // Assert
-        //    Assert.IsNotNull(expenses);
-        //    Assert.AreEqual(0, expenses.Count());
-        //    expenseRepository.Verify(e => e.Expenses(null), Times.Once);
-        //    expenseRepository.VerifyNoOtherCalls();
-        //    categoryRepository.VerifyNoOtherCalls();
-        //}
-
-        //[TestCase(10, 0, true)]
-        //[TestCase(15, 5, false)]
-        //public async Task GetAll_ReturnsPagedExpenses(int limit, int offset, bool latestFirst)
-        //{
-        //    // Arrange
-        //    Mock<IExpenseRepository> expenseRepository = new Mock<IExpenseRepository>(MockBehavior.Strict);
-        //    Mock<ICategoryRepository> categoryRepository = new Mock<ICategoryRepository>(MockBehavior.Strict);
-        //    expenseRepository.Setup(x => x.Expenses(null, limit, offset, latestFirst)).ReturnsAsync((IEnumerable<Expense>)Expenses);
-        //    IExpenseService expenseService = new ExpenseService(expenseRepository.Object, categoryRepository.Object);
-
-        //    // Act
-        //    var expenses = await expenseService.GetAll(null, limit, offset, latestFirst);
-
-        //    // Assert
-        //    Assert.IsNotNull(expenses);
-        //    Assert.AreEqual(Expenses.Count(), expenses.Count());
-        //    expenseRepository.Verify(e => e.Expenses(null, limit, offset, latestFirst), Times.Once);
-        //    expenseRepository.VerifyNoOtherCalls();
-        //    categoryRepository.VerifyNoOtherCalls();
-        //}
-
-        //[TestCase(10, 0, true)]
-        //public async Task GetAll_ReturnsEmptyCollectionIfNoExpense(int limit, int offset, bool latestFirst)
-        //{
-        //    // Arrange
-        //    Mock<IExpenseRepository> expenseRepository = new Mock<IExpenseRepository>(MockBehavior.Strict);
-        //    Mock<ICategoryRepository> categoryRepository = new Mock<ICategoryRepository>(MockBehavior.Strict);
-        //    expenseRepository.Setup(x => x.Expenses(null, limit, offset, latestFirst)).ReturnsAsync((IEnumerable<Expense>)null);
-        //    IExpenseService expenseService = new ExpenseService(expenseRepository.Object, categoryRepository.Object);
-
-        //    // Act
-        //    var expenses = await expenseService.GetAll(null, limit, offset, latestFirst);
-
-        //    // Assert
-        //    Assert.IsNotNull(expenses);
-        //    Assert.AreEqual(0, expenses.Count());
-        //    expenseRepository.Verify(e => e.Expenses(null, limit, offset, latestFirst), Times.Once);
-        //    expenseRepository.VerifyNoOtherCalls();
-        //    categoryRepository.VerifyNoOtherCalls();
-        //}
-
-        //[TestCase(1)]
-        //[TestCase(2)]
-        //[TestCase(3)]
-        //[TestCase(1000)]
-        //public async Task Get_ReturnsExpenseWithParticularId(int id)
-        //{
-        //    // Arrange
-        //    Mock<IExpenseRepository> expenseRepository = new Mock<IExpenseRepository>(MockBehavior.Strict);
-        //    Mock<ICategoryRepository> categoryRepository = new Mock<ICategoryRepository>(MockBehavior.Strict);
-        //    expenseRepository.Setup(x => x.Get(id)).ReturnsAsync(Expenses.SingleOrDefault(e => e.Id == id));
-        //    IExpenseService expenseService = new ExpenseService(expenseRepository.Object, categoryRepository.Object);
-
-        //    // Act
-        //    var expense = await expenseService.Get(id);
-
-        //    // Assert
-        //    Assert.AreEqual(expense, Expenses.SingleOrDefault(e => e.Id == id));
-        //    expenseRepository.Verify(e => e.Get(id), Times.Once);
-        //    expenseRepository.VerifyNoOtherCalls();
-        //    categoryRepository.VerifyNoOtherCalls();
-        //}
-
-        //[Test]
-        //public async Task Get_ReturnsNullIfCategoryDoesNotExists()
-        //{
-        //    // Arrange
-        //    Mock<IExpenseRepository> expenseRepository = new Mock<IExpenseRepository>(MockBehavior.Strict);
-        //    Mock<ICategoryRepository> categoryRepository = new Mock<ICategoryRepository>(MockBehavior.Strict);
-        //    categoryRepository.Setup(x => x.Get(null, "NonCategory")).ReturnsAsync((Category)null);
-        //    IExpenseService expenseService = new ExpenseService(expenseRepository.Object, categoryRepository.Object);
-
-        //    // Act
-        //    var expense = await expenseService.Get("NonCategory");
-
-        //    // Assert
-        //    Assert.IsNull(expense);
-        //    categoryRepository.Verify(x => x.Get(null, "NonCategory"), Times.Once);
-        //    expenseRepository.VerifyNoOtherCalls();
-        //    categoryRepository.VerifyNoOtherCalls();
-        //}
-
-        //[Test]
-        //public async Task Get_ReturnsExpensesOfGivenCategory()
-        //{
-        //    // Arrange
-        //    Mock<IExpenseRepository> expenseRepository = new Mock<IExpenseRepository>(MockBehavior.Strict);
-        //    Mock<ICategoryRepository> categoryRepository = new Mock<ICategoryRepository>(MockBehavior.Strict);
-        //    categoryRepository.Setup(x => x.Get(null, Category.Name)).ReturnsAsync(Category);
-        //    expenseRepository
-        //        .Setup(x => x.Expenses(It.IsAny<Func<Expense, bool>>()))
-        //        .ReturnsAsync(Expenses.Where(e => e.Category == Category));
-        //    IExpenseService expenseService = new ExpenseService(expenseRepository.Object, categoryRepository.Object);
-
-        //    // Act
-        //    var expenses = await expenseService.Get(Category.Name);
-
-        //    // Assert
-        //    Assert.IsNotNull(expenses);
-        //    Assert.AreEqual(Expenses.Where(e => e.Category == Category).Count(), expenses.Count());
-        //    // expenseRepository.Verify(x => x.Expenses(e => e.Category != null && e.Category.Name.Equals("Category123", StringComparison.OrdinalIgnoreCase)), Times.Once);
-        //    // expenseRepository.VerifyNoOtherCalls();
-        //    categoryRepository.Verify(x => x.Get(null, Category.Name), Times.Once);
-        //    categoryRepository.VerifyNoOtherCalls();
-        //}
     }
 }

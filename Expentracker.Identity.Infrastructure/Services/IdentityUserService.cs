@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using ExpenseTracker.Identity.Infrastructure.Entities;
 using ExpenseTracker.Identity.Services;
+using ExpenseTracker.Identity.Common.Exceptions;
 
 namespace ExpenseTracker.Identity.Infrastructure.Services
 {
@@ -36,7 +37,7 @@ namespace ExpenseTracker.Identity.Infrastructure.Services
         {
             var result = await _userManager.CreateAsync(_mapper.Map<ApplicationUserDbEntity>(user), user.Password);
             if (!result.Succeeded)
-                throw new Exception("Unable to create user");
+                throw new RegistrationException(result.Errors.Select(e => e.Description));
         }
 
         public async Task<string> GetToken(LoginUserDto loginUserDto)
@@ -47,7 +48,7 @@ namespace ExpenseTracker.Identity.Infrastructure.Services
 
             var validPassword = await this._userManager.CheckPasswordAsync(user, loginUserDto.Password);
             if (!validPassword)
-                return null;
+                throw new AuthenticationException();
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["JwtConfiguration:Issuer"],
