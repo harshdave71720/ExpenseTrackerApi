@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Rest.Controllers
 {
+    [ApiController]
     public class AppControllerBase : ControllerBase
     {
         protected readonly IUserService _userService;
@@ -36,7 +37,7 @@ namespace ExpenseTracker.Rest.Controllers
                 new Response
                 (
                     StatusCodes.Status400BadRequest,
-                    ModelState
+                    errors : ModelState
                         .Where(e => e.Value?.Errors?.Count() > 0)
                         .SelectMany(e => e.Value.Errors)
                         .Select(e => e.ErrorMessage)
