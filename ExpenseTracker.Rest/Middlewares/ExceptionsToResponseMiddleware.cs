@@ -3,9 +3,10 @@ using System;
 using System.Threading.Tasks;
 using ExpenseTracker.Identity.Common.Exceptions;
 using Microsoft.AspNetCore.Builder;
-using Newtonsoft.Json;
 using ExpenseTracker.Rest.Models;
 using ExpenseTracker.Core.Exceptions;
+using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ExpenseTracker.Rest.Middlewares
 {
@@ -33,17 +34,20 @@ namespace ExpenseTracker.Rest.Middlewares
                     case AuthenticationException ex:
                         response = new Response(StatusCodes.Status401Unauthorized);
                         break;
+                    case RegistrationException ex:
+                        response = new Response(StatusCodes.Status400BadRequest, ex.Errors);
+                        break;
                     case ValidationException ex:
                         response = new Response(StatusCodes.Status400BadRequest, ex.ValidationErrors);
                         break;
                     case BadRequestException ex:
-                        response = new Response(StatusCodes.Status400BadRequest, ex.Message);
+                        response = new Response(StatusCodes.Status400BadRequest, error : ex.Message);
                         break;
                     case ArgumentException ex:
-                        response = new Response(StatusCodes.Status400BadRequest, ex.Message);
+                        response = new Response(StatusCodes.Status400BadRequest, error: ex.Message);
                         break;
                     case NotFoundException ex:
-                        response = new Response(StatusCodes.Status404NotFound, ex.Message);
+                        response = new Response(StatusCodes.Status404NotFound, error: ex.Message);
                         break;
                     case Exception ex: 
                         response = new Response(StatusCodes.Status500InternalServerError);
@@ -51,7 +55,14 @@ namespace ExpenseTracker.Rest.Middlewares
                 }
 
                 context.Response.StatusCode = response.StatusCode;
-                await context.Response.WriteAsync(JsonConvert.SerializeObject(response));
+                await context.Response.WriteAsync
+                    (
+                        JsonSerializer.Serialize
+                        (
+                            response,
+                            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+                        )
+                    );
             }
         }
     }
