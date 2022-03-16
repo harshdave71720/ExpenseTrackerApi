@@ -128,6 +128,7 @@ namespace ExpenseTracker.Core.Services
             foreach (var expenseWithCategory in expenseWithCategories)
             {
                 var expense = expenseWithCategory.Key;
+                expense.User = user;
                 Guard.AgainstNull(expense.User, nameof(User));
                 var categoryName = expenseWithCategory.Value;
                 expense.Category = categories.SingleOrDefault(c => c.Name.Equals(categoryName, StringComparison.OrdinalIgnoreCase));
