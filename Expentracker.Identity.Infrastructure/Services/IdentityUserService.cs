@@ -53,7 +53,7 @@ namespace ExpenseTracker.Identity.Infrastructure.Services
             var token = new JwtSecurityToken(
                 issuer: _configuration["JwtConfiguration:Issuer"],
                 audience: _configuration["JwtConfiguration:Audience"],
-                expires: DateTime.Now.AddHours(24 * int.Parse(_configuration["JwtConfiguration:ExpireDays"])),
+                expires: DateTime.Now.AddMinutes(int.Parse(_configuration["JwtConfiguration:ExpireMinutes"])),
                 claims: new List<Claim>()
                         {
                             new Claim(ClaimTypes.Email, user.Email),

@@ -41,6 +41,7 @@ namespace ExpenseTracker.Identity.Infrastructure
                     options.TokenValidationParameters.ValidAudience = Configuration["JwtConfiguration:Audience"];
                     options.TokenValidationParameters.ValidateIssuerSigningKey = true;
                     options.TokenValidationParameters.ValidateLifetime = true;
+                    options.TokenValidationParameters.ClockSkew = TimeSpan.FromMinutes(int.Parse(Configuration["JwtConfiguration:ClockSkew"]));
                     options.SaveToken = false;
                     options.TokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(@Configuration["JwtConfiguration:Secret"]));
                 });
