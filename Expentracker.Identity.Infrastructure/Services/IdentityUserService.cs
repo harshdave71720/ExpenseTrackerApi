@@ -44,7 +44,7 @@ namespace ExpenseTracker.Identity.Infrastructure.Services
         {
             var user = await this._userManager.Users.FirstOrDefaultAsync(u => u.Email == loginUserDto.Email);
             if (user == null)
-                return null;
+                throw new AuthenticationException();
 
             var validPassword = await this._userManager.CheckPasswordAsync(user, loginUserDto.Password);
             if (!validPassword)
