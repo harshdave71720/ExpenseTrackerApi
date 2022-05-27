@@ -9,7 +9,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ExpenseTracker.Identity.Infrastructure.DbContexts
 {
-    public class IdentityContext : IdentityDbContext<ApplicationUserDbEntity>
+    public class IdentityContext : IdentityDbContext<ApplicationUserDbEntity,
+                                        IdentityRole,
+                                        string,
+                                        IdentityUserClaim<string>,
+                                        IdentityUserRole<string>,
+                                        IdentityUserLogin<string>,
+                                        IdentityRoleClaim<string>,
+                                        UserTokenEntity>
     {
         public IdentityContext(DbContextOptions options) : base(options)
         { 
@@ -20,5 +27,6 @@ namespace ExpenseTracker.Identity.Infrastructure.DbContexts
             base.OnModelCreating(builder);
             builder.Entity<ApplicationUserDbEntity>(e => e.HasIndex(e => e.Email).IsUnique());
         }
+
     }
 }
