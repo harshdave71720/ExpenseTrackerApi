@@ -36,6 +36,14 @@ namespace ExpenseTracker.Rest.Controllers
         }
 
         [HttpGet]
+        [Route("names")]
+        public async Task<IActionResult> GetNames()
+        {
+            var categories = await _categoryService.GetNames(await GetUser());
+            return OkResponseResult(categories);
+        }
+
+        [HttpGet]
         [Route("{category}")]
         public async Task<IActionResult> Get(string category)
         {

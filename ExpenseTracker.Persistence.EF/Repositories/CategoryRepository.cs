@@ -81,5 +81,13 @@ namespace ExpenseTracker.Persistence.Repositories
         {
             return await _context.Categories.AnyAsync(c => c.Name.Equals(name) && c.UserId == user.Id);
         }
+
+        public async Task<string[]> GetNames(User user)
+        {
+            return await _context.Categories.AsNoTracking()
+                                            .Where(c => c.UserId == user.Id)
+                                            .Select(c => c.Name)
+                                            .ToArrayAsync();
+        }
     }
 }
