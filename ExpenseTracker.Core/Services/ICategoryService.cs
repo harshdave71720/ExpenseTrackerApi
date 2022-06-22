@@ -16,5 +16,7 @@ namespace ExpenseTracker.Core.Services
         Task<Category> Delete(User user, string categoryName);
 
         Task<Category> Add(Category category);
+
+        Task<string[]> GetNames(User user);
     }
 }
