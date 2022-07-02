@@ -73,5 +73,12 @@ namespace ExpenseTracker.Core.Services
             await _categoryRepository.SaveChangesAsync();
             return result;
         }
+
+        public async Task<string[]> GetNames(User user)
+        {
+            Guard.AgainstNull(user, nameof(user));
+
+            return await _categoryRepository.GetNames(user);
+        }
     }
 }

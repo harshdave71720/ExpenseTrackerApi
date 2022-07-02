@@ -25,5 +25,7 @@ namespace ExpenseTracker.Core.Repositories
         Task<bool> Exists(User user, int id);
 
         Task<bool> Exists(User user, string name);
+
+        Task<string[]> GetNames(User user);
     }
 }
