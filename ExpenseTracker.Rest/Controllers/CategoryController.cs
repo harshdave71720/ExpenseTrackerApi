@@ -8,7 +8,6 @@ using ExpenseTracker.Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using ExpenseTracker.Core.Helpers;
 using ExpenseTracker.Core.Exceptions;
-using Microsoft.Extensions.Logging;
 
 namespace ExpenseTracker.Rest.Controllers
 {
@@ -18,16 +17,14 @@ namespace ExpenseTracker.Rest.Controllers
     {
         private readonly IMapper _mapper;
         private readonly ICategoryService _categoryService;
-        private readonly ILogger<CategoryController> _logger;
 
-        public CategoryController(IMapper mapper, ILogger<CategoryController> logger,ICategoryService categoryService, IUserService userService)
+        public CategoryController(IMapper mapper, ICategoryService categoryService, IUserService userService)
         : base(userService)
         {
             Guard.AgainstDependencyNull(mapper);
             Guard.AgainstDependencyNull(categoryService);
             _mapper = mapper;
             _categoryService = categoryService;
-            _logger = logger;
         }
 
         [HttpGet]
@@ -43,11 +40,6 @@ namespace ExpenseTracker.Rest.Controllers
         public async Task<IActionResult> GetNames()
         {
             var categories = await _categoryService.GetNames(await GetUser());
-            _logger.Log(LogLevel.Information, "Hello this is my first log");
-            _logger.LogInformation("Categories are {categories}", new { a = 1, b = 12, c = 23 });
-            _logger.LogInformation("Categories are {categories}", new object[] { new { a = 1, b = 12, c = 23 }, new { a = 1, b = 12, c = 23 } });
-            _logger.LogWarning("Categories are {categories}", new object[] { new { a = 1, b = 12, c = 23 }, new { a = 1, b = 12, c = 23 } });
-            _logger.LogError("Categories are {categories}", new object[] { new { a = 1, b = 12, c = 23 }, new { a = 1, b = 12, c = 23 } });
             return OkResponseResult(categories);
         }
 

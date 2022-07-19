@@ -5,21 +5,17 @@ using ExpenseTracker.Core.Entities;
 using ExpenseTracker.Core.Repositories;
 using ExpenseTracker.Core.Helpers;
 using ExpenseTracker.Core.Exceptions;
-using Microsoft.Extensions.Logging;
 
 namespace ExpenseTracker.Core.Services
 {
     public class CategoryService : ICategoryService
     {
         private readonly ICategoryRepository _categoryRepository;
-        private readonly ILogger<CategoryService> _logger;
 
-        public CategoryService(ILogger<CategoryService> logger,ICategoryRepository categoryRepository)
+        public CategoryService(ICategoryRepository categoryRepository)
         {
             Guard.AgainstDependencyNull(categoryRepository);
-            Guard.AgainstDependencyNull(logger);
 
-            _logger = logger;
             _categoryRepository = categoryRepository;
         }
 
@@ -81,8 +77,7 @@ namespace ExpenseTracker.Core.Services
         public async Task<string[]> GetNames(User user)
         {
             Guard.AgainstNull(user, nameof(user));
-            var categories = await _categoryRepository.GetNames(user);
-            _logger.LogInformation("Log from service layer : {names}", categories);
+
             return await _categoryRepository.GetNames(user);
         }
     }

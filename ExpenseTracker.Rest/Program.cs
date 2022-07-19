@@ -23,7 +23,6 @@ namespace ExpenseTracker.Rest
         {
             Log.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(Configuration)
-                //.WriteTo.Console()
                 .WriteTo.File(new JsonFormatter(), @"C:\ExpenseTracker\logs.json", shared: true)
                 .CreateLogger();
 
@@ -49,7 +48,6 @@ namespace ExpenseTracker.Rest
                 {
                     webBuilder.UseStartup<Startup>();
                 })
-                .UseSerilog();
-            
+            .UseSerilog();
     }
 }
